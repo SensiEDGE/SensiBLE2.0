@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  * @file    sensible20_steps.c
- * @brief   This file implements compass feature.
+ * @brief   This file implements steps counter feature.
  ******************************************************************************
  *
  * COPYRIGHT(c) 2019 SensiEDGE
