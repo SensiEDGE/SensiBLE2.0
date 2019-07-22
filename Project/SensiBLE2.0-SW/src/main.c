@@ -81,6 +81,8 @@ void AudioEnable(void);
 
 /* Private functions ---------------------------------------------------------*/
 
+static void sleep(void);
+
 /**
   * @brief  Main program.
   * @param  None
@@ -207,9 +209,42 @@ int main(void)
         BSP_LED_On(LED2);
         while(!BSP_PB_GetState(BUTTON_USER)){}
         BSP_LED_Off(LED2);
+        sleep();
     }
 
   }
+}
+
+static void sleep(void)
+{
+    uint8_t sleeping = 1;
+    
+    AT25XE041B_EnterDeepPowerDown();
+    SensorsDisable();
+    
+    SysTick->CTRL  &= ~SysTick_CTRL_TICKINT_Msk;
+    hci_le_set_advertise_enable(0);
+    
+    for(uint8_t i = 0; i < 0x80; i++)
+    {
+        BTLE_StackTick();
+    }
+    
+    do
+    {
+        BlueNRG_Sleep(SLEEPMODE_WAKETIMER, 0, 0, 5000);
+        uint8_t bntState = BSP_PB_GetState(BUTTON_USER);
+        if(0 == bntState) {
+            BSP_LED_On(LED2);
+            while(!BSP_PB_GetState(BUTTON_USER)){}
+            sleeping = 0;
+            BSP_LED_Off(LED2);
+        }
+    } while(sleeping);
+    
+    SysTick->CTRL  |= SysTick_CTRL_TICKINT_Msk;
+    hci_le_set_advertise_enable(1);
+    AT25XE041B_ExitDeepPowerDown();
 }
 
 void EnableAll(void)

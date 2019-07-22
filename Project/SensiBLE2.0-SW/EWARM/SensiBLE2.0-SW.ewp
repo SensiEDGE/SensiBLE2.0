@@ -665,7 +665,7 @@
                 </option>
                 <option>
                     <name>OOCOutputFile</name>
-                    <state>SensiBLE-2.0-revC1-OTA.bin</state>
+                    <state>SensiBLE-2.0-revC1-SW-OTA.bin</state>
                 </option>
                 <option>
                     <name>OOCCommandLineProducer</name>

@@ -38,7 +38,8 @@ tBleStatus Add_Environmental_Sensor_Service(void);
 tBleStatus Add_HW_SW_ServW2ST_Service(void);
 
 tBleStatus EnvironmentalUpdate(void);
-tBleStatus LuxUpdate(void);
+//tBleStatus LuxUpdate(void);
+tBleStatus CoLuxUpdate(void);
 
 tBleStatus AccEvent_Notify(uint16_t Command, uint8_t dimByte);
 tBleStatus Config_Notify(uint32_t Feature, uint8_t Command, uint8_t val);
@@ -46,7 +47,7 @@ tBleStatus ECompass_Update(uint16_t Angle);
 
 
 void LedUpdate(Led_TypeDef led);
-void BatUpdate(uint32_t soc, uint32_t voltage, int32_t current);
+void BatUpdate();
                                                 
 void UpdateAll(void);
 

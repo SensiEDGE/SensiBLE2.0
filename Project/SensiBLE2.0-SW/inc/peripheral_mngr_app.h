@@ -86,6 +86,14 @@ typedef enum
   * @}
   */
 
+#define APP_READY                                       ((uint16_t)(0))
+#define APP_BLUEVOICE_ENABLE                            ((uint16_t)(1 << 0))
+#define APP_INERTIAL_ENABLE                             ((uint16_t)(1 << 1))
+#define APP_ENV_ENABLE                                  ((uint16_t)(1 << 2))
+#define APP_CO_LUX_ENABLE                               ((uint16_t)(1 << 3))
+#define APP_LED_ENABLE                                  ((uint16_t)(1 << 4))
+#define APP_BAT_ENABLE                                  ((uint16_t)(1 << 5))
+
 /* Exported variables --------------------------------------------------------*/
 extern volatile uint8_t AccGryro_DataReady;
 extern volatile uint8_t APP_PER_state;
@@ -125,6 +133,8 @@ void PER_APP_Stop_Advertise(void);
  * @retval APP_Status: APP_SUCCESS if the configuration is ok, APP_ERROR otherwise.
  */
 APP_Status PER_APP_Advertise(void);
+
+void setIbeacon(void);
 
 /**
  * @brief  Error handler.

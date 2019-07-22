@@ -18,6 +18,8 @@ extern uint32_t lSystickCounter;
 
 extern uint32_t FirstConnectionConfig;
 
+extern uint16_t APP_PER_enabled;
+
 volatile BOOL ForceReCalibration = FALSE;
 
 /* Local symbols -------------------------------------------------------------*/
@@ -31,7 +33,8 @@ static uint16_t stdErrCharHandle = 0;
 static uint16_t EnvironmentalCharSize;
 static uint16_t EnvironmentalCharHandle;
 static uint16_t LedCharHandle;
-static uint16_t LuxCharHandle;
+//static uint16_t LuxCharHandle;
+static uint16_t Co_LuxCharHandle;
 static uint16_t SwitchCharHandle;
 static uint16_t VbatHandle;
 
@@ -60,7 +63,7 @@ static uint32_t ConnectionBleStatus;
 
 #define MCU_TYPE                "BlueNRG_1"
 #define PACKAGE_NAME            "SensiBLE-2.0"
-#define VERSION                 '2','1','2'
+#define VERSION                 '2','1','5'
 
 /* Global symbols ------------------------------------------------------------*/
 
@@ -88,7 +91,9 @@ do {\
 #define COPY_ENVIRONMENTAL_W2ST_CHAR_UUID(uuid_struct) COPY_UUID_128(uuid_struct,0x00,0x00,0x00,0x00,0x00,0x01,0x11,0xe1,0xac,0x36,0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 
 #define COPY_LED_W2ST_CHAR_UUID(uuid_struct)           COPY_UUID_128(uuid_struct,0x20,0x00,0x00,0x00,0x00,0x01,0x11,0xe1,0xac,0x36,0x00,0x02,0xa5,0xd5,0xc5,0x1b)
-#define COPY_LUX_W2ST_CHAR_UUID(uuid_struct)           COPY_UUID_128(uuid_struct,0x01,0x00,0x00,0x00,0x00,0x01,0x11,0xe1,0xac,0x36,0x00,0x02,0xa5,0xd5,0xc5,0x1b)
+//#define COPY_LUX_W2ST_CHAR_UUID(uuid_struct)           COPY_UUID_128(uuid_struct,0x01,0x00,0x00,0x00,0x00,0x01,0x11,0xe1,0xac,0x36,0x00,0x02,0xa5,0xd5,0xc5,0x1b)
+#warning "CO sensor here"
+#define COPY_CO_LUX_W2ST_CHAR_UUID(uuid_struct)        COPY_UUID_128(uuid_struct,0x01,0x00,0x80,0x00,0x00,0x01,0x11,0xe1,0xac,0x36,0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 
 #define COPY_BAT_W2ST_CHAR_UUID(uuid_struct)            COPY_UUID_128(uuid_struct,0x00,0x02,0x00,0x00,0x00,0x01,0x11,0xe1,0xac,0x36,0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 
@@ -172,8 +177,9 @@ used in Console service */
 #define FEATURE_MASK_LED_SWITCH  0x20000000
 
 /* Local functions prototypes ------------------------------------------------*/
-static tBleStatus Environmental_Update(int32_t Press,uint16_t Hum,int16_t Temp2,int16_t Temp1);
-static tBleStatus Lux_Update(uint16_t LuxValue);
+static tBleStatus Environmental_Update(int32_t Press,uint16_t Hum,int16_t Temp1);//,int16_t Temp2);
+//static tBleStatus Lux_Update(uint16_t LuxValue);
+static tBleStatus Co_Lux_Update(uint32_t CoValue, uint16_t LuxValue);
 
 static uint8_t DebugConsoleCommandParsing(uint8_t * att_data, uint8_t data_length);
 static void processTermWrite(uint8_t * att_data, uint8_t data_length);
@@ -237,14 +243,16 @@ void sensible_aci_gatt_attribute_modified_event(uint16_t Connection_Handle,
                                                 uint8_t Attr_Data[])
 {
     /* ---------------------------------------------------------------------- */
-    /* Switch state was changed */
+    /* Switch fucntion on/off */
     if(Attr_Handle == SwitchCharHandle + 2) {
         if(Attr_Data[0] == 0x01) {
             /* Switch on */
-            BSP_LED_On(LED1);
+            APP_PER_enabled |= APP_LED_ENABLE;
+            //BSP_LED_On(LED1);
         } else if(Attr_Data[0] == 0x00) {
             /* Switch off */
-            BSP_LED_Off(LED1);
+            APP_PER_enabled &= ~APP_LED_ENABLE;
+            //BSP_LED_Off(LED1);
         }
     }
     
@@ -253,10 +261,12 @@ void sensible_aci_gatt_attribute_modified_event(uint16_t Connection_Handle,
     if(Attr_Handle == VbatHandle + 2) {
         if(Attr_Data[0] == 0x01) {
             VbatState = 1;
+            APP_PER_enabled |= APP_BAT_ENABLE;
             BSP_Audio_IN_DeInit();
             BSP_BatLevel_IN_Init();
         } else if(Attr_Data[0] == 0x00) {
             VbatState = 0;
+            APP_PER_enabled &= ~APP_BAT_ENABLE;
             BSP_BatLevel_IN_DeInit();
             BSP_AUDIO_IN_Init(AUDIO_SAMPLING_FREQUENCY);
         }
@@ -266,21 +276,22 @@ void sensible_aci_gatt_attribute_modified_event(uint16_t Connection_Handle,
     /* Environmental sensors enable / disable command */
     if(Attr_Handle == EnvironmentalCharHandle + 2) {
         if(Attr_Data[0] == 0x01) {
-            // SensorsEnable();
+            APP_PER_enabled |= APP_ENV_ENABLE;// SensorsEnable();
         } else if(Attr_Data[0] == 0x00) {
-            // SensorsDisable();
+            APP_PER_enabled &= ~APP_ENV_ENABLE;// SensorsDisable();
+        }
+    }
+ 
+    /* ---------------------------------------------------------------------- */
+    /* CO & LUX sensors enable / disable command */
+    if(Attr_Handle == Co_LuxCharHandle + 2) {
+        if(Attr_Data[0] == 0x01) {
+            APP_PER_enabled |= APP_CO_LUX_ENABLE;
+        } else if(Attr_Data[0] == 0x00) {
+            APP_PER_enabled &= ~APP_CO_LUX_ENABLE;
         }
     }
     
-    /* ---------------------------------------------------------------------- */
-    /* Switch fucntion on/off */
-    if(Attr_Handle == SwitchCharHandle + 2) {
-        if(Attr_Data[0] == 0x01) {
-            // SensorsEnable();
-        } else if(Attr_Data[0] == 0x00) {
-            // SensorsDisable();
-        }
-    }
     /* ---------------------------------------------------------------------- */
     /* Configuration received */
     if(Attr_Handle == ConfigCharHandle + 1) {
@@ -380,7 +391,8 @@ void UpdateAll(void)
 {
     if(VbatState == 0) {
         EnvironmentalUpdate();
-        LuxUpdate();
+//        LuxUpdate();
+        CoLuxUpdate();
         LedUpdate(LED2);
     } else {
         uint32_t soc = 0;
@@ -479,11 +491,11 @@ tBleStatus Add_Environmental_Sensor_Service(void)
   /* ************************ */
   COPY_ENVIRONMENTAL_W2ST_CHAR_UUID(uuid);
   
-  uuid[14] |= 0x05; /* One Temperature value*/
+  uuid[14] |= 0x04; /* One Temperature value*/ //5
   uuid[14] |= 0x08; /* Humidity */
   uuid[14] |= 0x10; /* Pressure value*/
   
-  EnvironmentalCharSize = 12;
+  EnvironmentalCharSize = 10;// if second temperature - 12;
   
   ret =  aci_gatt_add_char(EnvServHandle, UUID_TYPE_128, (Char_UUID_t*)uuid, EnvironmentalCharSize,
                            CHAR_PROP_NOTIFY|CHAR_PROP_READ,
@@ -495,12 +507,23 @@ tBleStatus Add_Environmental_Sensor_Service(void)
     goto fail;
   }
   /* ************************ */
-  COPY_LUX_W2ST_CHAR_UUID(uuid);
-  ret =  aci_gatt_add_char(EnvServHandle, UUID_TYPE_128, (Char_UUID_t*)uuid, 2+2,
+//  COPY_LUX_W2ST_CHAR_UUID(uuid);
+//  ret =  aci_gatt_add_char(EnvServHandle, UUID_TYPE_128, (Char_UUID_t*)uuid, 2+2,
+//                           CHAR_PROP_NOTIFY|CHAR_PROP_READ,
+//                           ATTR_PERMISSION_NONE,
+//                           GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP,
+//                           16, 0, &LuxCharHandle);
+//
+//  if (ret != BLE_STATUS_SUCCESS) {
+//    goto fail;
+//  }
+  
+  COPY_CO_LUX_W2ST_CHAR_UUID(uuid);
+  ret =  aci_gatt_add_char(EnvServHandle, UUID_TYPE_128, (Char_UUID_t*)uuid, 2+2+4,
                            CHAR_PROP_NOTIFY|CHAR_PROP_READ,
                            ATTR_PERMISSION_NONE,
                            GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP,
-                           16, 0, &LuxCharHandle);
+                           16, 0, &Co_LuxCharHandle);
 
   if (ret != BLE_STATUS_SUCCESS) {
     goto fail;
@@ -620,38 +643,43 @@ fail:
 /**
  * @brief Send battery level to the application
  */
-void BatUpdate(uint32_t soc, uint32_t voltage, int32_t current)
+void BatUpdate()
 {
-  uint8_t buff[2+2+2+2+1];
-  
-  STORE_LE_16(buff , 3);
-  STORE_LE_16(buff+2, soc);
-  STORE_LE_16(buff+4,voltage);
-  STORE_LE_16(buff+6,current);
-  // Make % from, i.e. 15 instead 153 (which means 15.3%)
-  soc /= 10;
-  if(soc<15) {
-    /* if it's < 15% Low Battery*/
-    buff[8] = 0x00; /* Low Battery */
-  } else {
-    static uint32_t PreVoltage = 0;
-    static uint32_t Status     = 0x04; /* Unknown */
-    if(PreVoltage != 0) {
-      if(PreVoltage > voltage){
-        PreVoltage = voltage;
-        Status = 0x01; /* Discharging */
-      } else if(PreVoltage < voltage){
-        PreVoltage = voltage;
-        Status = 0x03; /* Charging */
-      }
+    uint32_t soc = 0;
+    uint32_t voltage = 0;
+    int32_t current = 0;
+    uint8_t buff[2+2+2+2+1];
+    
+    BSP_BatLevel_GetValues(&soc, &voltage, &current);
+
+    STORE_LE_16(buff, lSystickCounter >> 3);
+    STORE_LE_16(buff+2, soc);
+    STORE_LE_16(buff+4, voltage);
+    STORE_LE_16(buff+6, current);
+    // Make % from, i.e. 15 instead 153 (which means 15.3%)
+    soc /= 10;
+    if(soc<15) {
+        /* if it's < 15% Low Battery*/
+        buff[8] = 0x00; /* Low Battery */
     } else {
-        PreVoltage = voltage;
+        static uint32_t PreVoltage = 0;
+        static uint32_t Status = 0x04; /* Unknown */
+        if(PreVoltage != 0) {
+            if(PreVoltage > voltage){
+                PreVoltage = voltage;
+                Status = 0x01; /* Discharging */
+            } else if(PreVoltage < voltage){
+                PreVoltage = voltage;
+                Status = 0x03; /* Charging */
+            }
+        } else {
+            PreVoltage = voltage;
+        }
+
+        buff[8] = Status;
     }
 
-    buff[8] = Status;
-  }
-
-  aci_gatt_update_char_value(EnvServHandle, VbatHandle, 0, sizeof(buff),buff);
+    aci_gatt_update_char_value(EnvServHandle, VbatHandle, 0, sizeof(buff),buff);
 }
 
 /**
@@ -665,17 +693,33 @@ void LedUpdate(Led_TypeDef led)
         aci_gatt_update_char_value(EnvServHandle, LedCharHandle, 0, 2+1,buff);
 }
 
+///**
+// * @brief  Read light sensor value and send via BLE
+// * @param  
+// * @retval tBleStatus Status
+// */
+//tBleStatus LuxUpdate(void)
+//{
+//    uint16_t lux;
+//    
+//    SensorsReadLux(&lux);    
+//    return Lux_Update(lux);
+//}
+
 /**
  * @brief  Read light sensor value and send via BLE
  * @param  
  * @retval tBleStatus Status
  */
-tBleStatus LuxUpdate(void)
+tBleStatus CoLuxUpdate(void)
 {
-    uint16_t lux;
+    uint16_t lux = 0;
+    uint16_t uv = 0;
     
-    SensorsReadLux(&lux);    
-    return Lux_Update(lux);
+    SensorsReadLux(&lux);
+    SensorsReadUv(&uv);
+    
+    return Co_Lux_Update(uv * 100, lux);
 }
 
 /**
@@ -763,10 +807,10 @@ tBleStatus EnvironmentalUpdate(void)
     float press;
     float temp1;
     float hum;
-    float temp2;
+//    float temp2;
     
     SesnsorsReadTemp1(&temp1);
-    SensorsReadTemp2(&temp2);
+//    SensorsReadTemp2(&temp2);
     SesnorsReadHumidity(&hum);
     SensorsReadPressure(&press);
       
@@ -776,13 +820,12 @@ tBleStatus EnvironmentalUpdate(void)
     uint16_t HumToSend = intPart*10+decPart;
     MCR_BLUEMS_F2I_1D(temp1, intPart, decPart);
     int16_t Temp1ToSend = intPart*10+decPart;
-    MCR_BLUEMS_F2I_1D(temp2, intPart, decPart);
-    int16_t Temp2ToSend = intPart*10+decPart;
+//    MCR_BLUEMS_F2I_1D(temp2, intPart, decPart);
+//    int16_t Temp2ToSend = intPart*10+decPart;
         
     return Environmental_Update(PressToSend,
                                 HumToSend,
-                                Temp2ToSend,
-                                Temp1ToSend);
+                                Temp1ToSend);//, Temp2ToSend);
 }
 
 /**
@@ -790,12 +833,12 @@ tBleStatus EnvironmentalUpdate(void)
  * @param  
  * @retval tBleStatus Status
  */
-static tBleStatus Environmental_Update(int32_t Press,uint16_t Hum,int16_t Temp2,int16_t Temp1)
+static tBleStatus Environmental_Update(int32_t Press,uint16_t Hum,int16_t Temp1)//,int16_t Temp2)
 {
   tBleStatus ret;
   uint8_t BuffPos;
 
-  uint8_t buff[2+4/*Press*/+2/*Hum*/+2/*Temp2*/+2/*Temp1*/];
+  uint8_t buff[2+4/*Press*/+2/*Hum*/+2/*Temp1*/];//+2/*Temp2*/];
   
   static uint16_t time = 0;
   
@@ -809,8 +852,8 @@ static tBleStatus Environmental_Update(int32_t Press,uint16_t Hum,int16_t Temp2,
   STORE_LE_16(buff+BuffPos,Hum);
   BuffPos+=2;
   
-  STORE_LE_16(buff+BuffPos,Temp2);
-  BuffPos+=2;
+//  STORE_LE_16(buff+BuffPos,Temp2);
+//  BuffPos+=2;
   
   STORE_LE_16(buff+BuffPos,Temp1);
   BuffPos+=2;
@@ -823,29 +866,55 @@ static tBleStatus Environmental_Update(int32_t Press,uint16_t Hum,int16_t Temp2,
   return BLE_STATUS_SUCCESS;
 }
 
+///**
+// * @brief  Update LLux characteristic value
+// * @param  uint16_t Value in Lux
+// * @retval tBleStatus   Status
+// */
+//static tBleStatus Lux_Update(uint16_t LuxValue)
+//{
+//  tBleStatus ret;
+//  uint8_t buff[2+2];
+//
+//  static uint16_t time = 0;
+//  
+//  time += 3;
+//  STORE_LE_16(buff  ,(time));
+//  STORE_LE_16(buff+2,LuxValue);
+//
+//  ret = aci_gatt_update_char_value(EnvServHandle, LuxCharHandle, 0, 2+2,buff);
+//
+//  if (ret != BLE_STATUS_SUCCESS){
+//    return BLE_STATUS_ERROR;
+//  }
+//  return BLE_STATUS_SUCCESS;
+//}
+
 /**
- * @brief  Update LLux characteristic value
+ * @brief  Update CO & Lux characteristic value
  * @param  uint16_t Value in Lux
  * @retval tBleStatus   Status
  */
-static tBleStatus Lux_Update(uint16_t LuxValue)
+tBleStatus Co_Lux_Update(uint32_t CoValue, uint16_t LuxValue)
 {
   tBleStatus ret;
-  uint8_t buff[2+2];
-
+  uint8_t buff[2+2+4];
   static uint16_t time = 0;
-  
-  time += 3;
-  STORE_LE_16(buff  ,(time));
-  STORE_LE_16(buff+2,LuxValue);
 
-  ret = aci_gatt_update_char_value(EnvServHandle, LuxCharHandle, 0, 2+2,buff);
+  time += 3;
+
+  STORE_LE_16(buff, (time));
+  STORE_LE_16(buff+2, LuxValue);
+  STORE_LE_32(buff+4, CoValue);
+
+  ret = aci_gatt_update_char_value(EnvServHandle, Co_LuxCharHandle, 0, sizeof(buff),buff);
 
   if (ret != BLE_STATUS_SUCCESS){
     return BLE_STATUS_ERROR;
   }
   return BLE_STATUS_SUCCESS;
 }
+
 
 /**
  * @brief  Update Terminal characteristic value
@@ -981,17 +1050,32 @@ static uint8_t DebugConsoleCommandParsing(uint8_t * att_data, uint8_t data_lengt
 {
     uint8_t SendBackData = 1;
     volatile uint8_t tmp = 0;
-
+    
     if(!strncmp("versionFw",(char *)(att_data),9)) {
         bytesToWrite = sprintf((char *)BufferToWrite,"%s_%s_%c.%c.%c\r\n",
                             MCU_TYPE, PACKAGE_NAME, VERSION);
         Term_Update(BufferToWrite,bytesToWrite);
         SendBackData=0;
+        
     } else if(!strncmp("upgradeFw",(char *)(att_data),9)) {
         processUpgradeFw(att_data);
         SendBackData=0;
-
+    
+    } else if((att_data[0]=='u') & (att_data[1]=='i') & (att_data[2]=='d')) {
+        //The address of Unique device serial number in BlueNRG-1. It contains 
+        //only 6 bytes of unique ID but we need 12 bytes.
+        uint8_t *uid = (uint8_t*)0x100007F4;
+        //This is ID from STM32L476
+        uint32_t MCU_ID = 0x415;
+        bytesToWrite = sprintf((char *)BufferToWrite,"%.2X%.2X%.2X%.2X%.2X%.2X%.2X%.2X%.2X%.2X%.2X%.2X_%.3lX\r\n",
+                            uid[3], uid[2], uid[1], uid[0],
+                            uid[1], uid[0], uid[5], uid[4],
+                            uid[5], uid[4], uid[3], uid[2],
+                            MCU_ID);
+        Term_Update(BufferToWrite, bytesToWrite);
+        SendBackData=0;
     }
+
     return SendBackData;
 }
 

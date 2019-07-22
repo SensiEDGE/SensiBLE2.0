@@ -82,12 +82,6 @@
 
 #endif // SENSIBLE_2_0
 
-#define APP_READY                                       (0x00)
-#define APP_BLUEVOICE_ENABLE                            (0x01)
-#define APP_INERTIAL_ENABLE                             (0x02)
-     
-#define APP_ENVIR_LUX_ENABLE                            (0x03)
-
 /**
  * @}
  */
@@ -103,7 +97,7 @@ extern void EnableAll(void);
 
 volatile uint16_t ServiceHandle;
 volatile uint16_t conn_handle;
-volatile uint8_t APP_PER_enabled = APP_READY;
+volatile uint16_t APP_PER_enabled = APP_READY;
 
 uint8_t PERIPHERAL_BDADDR[] = { 0x55, 0x11, 0x07, 0x01, 0x16, 0xE2 };
 
@@ -277,9 +271,10 @@ APP_Status PER_APP_Advertise(void)
          // 0x81 for a Nucleo board exporting remote feature
          0x82,// 0x00, // The device type
          0x48 | 0x20 | 0x01 | 0x04,        // 0x48,      /* AudioSync+AudioData */
-         0xBF,//(1 ) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (0 << 5) | (0 << 7), /*Second Temp, Bat, Temp, Hum, Pres, Mag, Acc */
+         0xBE,//(removed second temperature) 0xBF,//(1 ) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (0 << 5) | (0 << 7), /*Second Temp, Bat, Temp, Hum, Pres, Mag, Acc */
          // 0xC0 | 0x1C | 0x02,        // 0xC0,      /* Acc+Gyr */
-         0x04,/* Accelerometer Events*/
+         #warning "CO sensor here"
+         0x04 | 0x80,/* Accelerometer Events | CO sensor*/
          0x40
   };	
 
@@ -301,6 +296,7 @@ APP_Status PER_APP_Advertise(void)
 
   ret = aci_gap_set_discoverable(ADV_IND,
                                  (300 * 1000) / 625, (300 * 1000) / 625,
+//                                 (100 * 1000) / 625, (100 * 1000) / 625,
                                  PUBLIC_ADDR, NO_WHITE_LIST_USE,
                            sizeof(local_name), local_name, 0, NULL, 0, 0);
 
@@ -310,13 +306,82 @@ APP_Status PER_APP_Advertise(void)
 #else
   ret = aci_gap_update_adv_data(20, manuf_data);
 #endif // SENSIBLE_2_0
-
+  
   if (ret != BLE_STATUS_SUCCESS)
   {
     return APP_ERROR;
   }
   
   return APP_SUCCESS;
+}
+
+void setIbeacon(void)
+{
+ 
+  uint16_t major = 0;
+  uint16_t minor = 0;
+  
+  
+/*
+ * minor and major values represent the ibeacon information.
+ * User can change these values in order to use beacon for something.
+ * In this demo, major codes SensiEDGE board ( 1 for SensiBLE1)
+ * Minor is generated from MCU UUID to distinguish the boards.
+ */
+  
+  major = 2; // 2 is for SensiBLE 2  
+  minor = (PERIPHERAL_BDADDR[4] << 8) | PERIPHERAL_BDADDR[5];//STM32_UUID[1] & 0x0000FFFF;
+  minor <<= 8;
+  minor ^= (PERIPHERAL_BDADDR[2] << 8) | PERIPHERAL_BDADDR[3];//(STM32_UUID[1] & 0xFFFF0000) >> 16;
+  minor <<= 8;
+  minor ^= (PERIPHERAL_BDADDR[0] << 8) | PERIPHERAL_BDADDR[1];
+  
+  static uint8_t ibeacon[] = 
+    {
+        0x02, 0x01, 0x06, 0x1A, 0xFF, 0x4C, 0x00, 0x02, 0x15,
+        0xC2, 0x64, 0x25, 0x63, 0xEC, 0x5E, 0x49, 0xCA, 0x95, 0x38, 0xF2, 0x9A, 0x6A, 0xA7, 0xE4, 0x07,
+        0x00, 0x00, // major
+        0x00, 0x00, // minor
+        0xBA // -70dB@1m
+    };
+    
+  ibeacon[25] = (major & 0xFF00) >> 8;
+  ibeacon[26] = major & 0x00FF;
+  ibeacon[27] = minor & 0x00FF;
+  ibeacon[28] = (minor & 0xFF00) >> 8;
+        
+    volatile tBleStatus stat;
+    
+    /* disable scan response */
+    
+  hci_le_set_scan_response_data(0, NULL);
+  stat = aci_gap_set_discoverable(ADV_IND,
+//                           (100 * 1000) / 625, (100 * 1000) / 625,
+                           (300 * 1000) / 625, (300 * 1000) / 625,
+                           RANDOM_ADDR, // PUBLIC_ADDR,
+                           NO_WHITE_LIST_USE,
+                           0 , NULL, 0, NULL, 0, 0);
+
+  if(stat != 0) {
+    stat = 0;
+  }
+  
+    stat = aci_gap_delete_ad_type(AD_TYPE_TX_POWER_LEVEL);
+    if(stat != 0) {
+      stat = 0;
+    }
+    stat = aci_gap_delete_ad_type(AD_TYPE_COMPLETE_LOCAL_NAME);
+    if(stat != 0) {
+      stat = 0;
+    }
+    stat = aci_gap_delete_ad_type(AD_TYPE_MANUFACTURER_SPECIFIC_DATA);
+    if(stat != 0) {
+      stat = 0;
+    }
+    
+    stat = aci_gap_update_adv_data(sizeof(ibeacon), ibeacon);
+    if(stat != 0)
+        stat = 0;
 }
 
 /**
@@ -333,11 +398,29 @@ void APP_Tick(void)
             ledBlink(LED1);
         }
     }
-    
-  switch (APP_PER_state)
-  {
-  case APP_STATUS_ADVERTISEMENT:
+
+    switch (APP_PER_state)
     {
+    case APP_STATUS_ADVERTISEMENT:
+    {
+        static uint32_t advChangeTime = 0;
+
+        if(advChangeTime == 0)
+        {
+            static uint8_t advState = 0;
+            advChangeTime = 15;//15 is the number of cycles
+            if(advState == 0)
+            {
+                advState = 1;
+                PER_APP_Advertise();
+            } else
+            {
+                advState = 0;
+                setIbeacon();
+            }
+        }
+        advChangeTime -= 1;
+
         static uint8_t periodCounter = 0;//for red led blink
 
         periodCounter += 1;
@@ -350,45 +433,55 @@ void APP_Tick(void)
         }
     }
     break;
-  case APP_STATUS_CONNECTED:
+    case APP_STATUS_CONNECTED:
     {
-      switch(APP_PER_enabled)
-      {
-      case APP_READY:
+        if ((APP_PER_enabled & APP_BLUEVOICE_ENABLE) != 0)
         {
-            if(lSystickCounter >= updateAllTime){
-                updateAllTime = lSystickCounter + APP_UPDATE_ALL_PERIOD;
-                UpdateAll();
+            if(audio_streaming_active)
+            {
+                /* Updated Audio data */  
+                BV_APP_DataUpdate();   
             }
         }
-        break;         
-      case APP_BLUEVOICE_ENABLE:
+
+        if ((APP_PER_enabled & APP_INERTIAL_ENABLE) != 0)
         {
-          if(audio_streaming_active)
-          {
-            /* Updated Audio data */  
-            BV_APP_DataUpdate();   
-          }
+            if(AccGryro_DataReady)
+            {
+                AccGryro_DataReady = 0;
+                /* Updated Acc and Gyro data */  
+                INERTIAL_APP_DataUpdate(ServiceHandle);
+            }
         }
-        break;
-      case APP_INERTIAL_ENABLE:
+
+        if(lSystickCounter >= updateAllTime)
         {
-          if(AccGryro_DataReady)
-          {
-            AccGryro_DataReady = 0;
-            /* Updated Acc and Gyro data */  
-            INERTIAL_APP_DataUpdate(ServiceHandle);
-          }
+            if ((APP_PER_enabled & APP_ENV_ENABLE) != 0)
+            {
+                EnvironmentalUpdate();
+            }
+            
+            if ((APP_PER_enabled & APP_CO_LUX_ENABLE) != 0)
+            {
+                CoLuxUpdate();
+            }
+            
+            if ((APP_PER_enabled & APP_LED_ENABLE) != 0)
+            {
+                LedUpdate(LED2);
+            }
+            
+            if ((APP_PER_enabled & APP_BAT_ENABLE) != 0)
+            {
+                BatUpdate();
+            }
+            
+            updateAllTime = lSystickCounter + APP_UPDATE_ALL_PERIOD;
         }
-        break;
-      default:
-        {
-        }
-        break;
-      }
+        
     }
     break;  
-  } 
+    }
 }
 
 static void ledBlink(Led_TypeDef led)
@@ -559,14 +652,14 @@ void aci_gatt_attribute_modified_event(uint16_t Connection_Handle,
         BV_APP_StartStop_ctrl();
       }
       
-      APP_PER_enabled = APP_BLUEVOICE_ENABLE;
+      APP_PER_enabled |= APP_BLUEVOICE_ENABLE;
       BluevoiceADPCM_BNRG1_AttributeModified_CB(Attr_Handle, Attr_Data_Length, Attr_Data);
     }
     else if(Attr_Data[0] == 0x00)
     {
-      if(APP_PER_enabled == APP_BLUEVOICE_ENABLE)
+      if((APP_PER_enabled & APP_BLUEVOICE_ENABLE) != 0)
       {
-        APP_PER_enabled = APP_READY;
+        APP_PER_enabled &= ~APP_BLUEVOICE_ENABLE;//APP_READY;
         if(audio_streaming_active)
         {
           BV_APP_StartStop_ctrl();
@@ -579,7 +672,7 @@ void aci_gatt_attribute_modified_event(uint16_t Connection_Handle,
   {
     if(Attr_Data[0] == 0x01)
     {
-      APP_PER_enabled = APP_INERTIAL_ENABLE;
+      APP_PER_enabled |= APP_INERTIAL_ENABLE;
 #ifdef SENSIBLE_2_0
       /* Inertial sensors Enable */
       INERTIAL_APP_Init();
@@ -592,9 +685,9 @@ void aci_gatt_attribute_modified_event(uint16_t Connection_Handle,
     }
     else if(Attr_Data[0] == 0x00)
     {
-      if(APP_PER_enabled == APP_INERTIAL_ENABLE)
+      if((APP_PER_enabled & APP_INERTIAL_ENABLE) != 0)
       {
-        APP_PER_enabled = APP_READY;
+        APP_PER_enabled &= ~APP_INERTIAL_ENABLE;//APP_READY;
       }
 #ifdef SENSIBLE_2_0
       INERTIAL_APP_Disable();

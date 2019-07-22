@@ -139,6 +139,8 @@ void SensorsDisable(void)
             SensibleErrorHandler();
         }
     }
+    
+    INERTIAL_APP_Disable();
 }
 
 SensibleResult_t SensorsEnableMag(void)
