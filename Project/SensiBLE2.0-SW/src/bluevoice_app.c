@@ -47,6 +47,7 @@
 #include "sleep.h"  
 #include "ble_const.h" 
 #include "steval_bluemic1_audio_in.h"
+#include "sensible_services.h"
    
 /** @addtogroup BLUEMIC_1_APP BLUEMIC_1_APP
  * @{
@@ -185,6 +186,9 @@ void BV_APP_StartStop_ctrl(void)
 void BSP_AUDIO_IN_AudioProcess(uint16_t* PCM_Buffer)
 {  
   BV_BNRG1_Status status;
+  
+  /* Mic level */
+  AudioProcess(PCM_Buffer);
   
   /*BlueVoice data filling*/
   if (BluevoiceADPCM_BNRG1_IsProfileConfigured())

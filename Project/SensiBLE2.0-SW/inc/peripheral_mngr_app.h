@@ -93,6 +93,7 @@ typedef enum
 #define APP_CO_LUX_ENABLE                               ((uint16_t)(1 << 3))
 #define APP_LED_ENABLE                                  ((uint16_t)(1 << 4))
 #define APP_BAT_ENABLE                                  ((uint16_t)(1 << 5))
+#define APP_MIC_LEVEL_ENABLE                            ((uint16_t)(1 << 6))
 
 /* Exported variables --------------------------------------------------------*/
 extern volatile uint8_t AccGryro_DataReady;

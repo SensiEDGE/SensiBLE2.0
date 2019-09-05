@@ -70,6 +70,7 @@
 #ifdef SENSIBLE_2_0
 
 #define APP_UPDATE_ALL_PERIOD                           500 //ms
+#define APP_UPDATE_MIC_LEVEL_PERIOD                     50 //ms
 #define LED_ON_TIME                                     50  //ms
 #define LED_OFF_TIME                                    950 //ms
 
@@ -102,6 +103,7 @@ volatile uint16_t APP_PER_enabled = APP_READY;
 uint8_t PERIPHERAL_BDADDR[] = { 0x55, 0x11, 0x07, 0x01, 0x16, 0xE2 };
 
 static uint32_t updateAllTime = 0;
+static uint32_t micLevelUpdateTime = 0;
 static uint32_t ledSwitchTime = 0;
 static BOOL ledActive = FALSE;// Variable used for holding LED state;
 
@@ -451,6 +453,15 @@ void APP_Tick(void)
                 AccGryro_DataReady = 0;
                 /* Updated Acc and Gyro data */  
                 INERTIAL_APP_DataUpdate(ServiceHandle);
+            }
+        }
+        
+        if ((APP_PER_enabled & APP_MIC_LEVEL_ENABLE) != 0)
+        {
+            if (lSystickCounter >= micLevelUpdateTime)
+            {
+                MicLevelUpdate();
+                micLevelUpdateTime = lSystickCounter + APP_UPDATE_MIC_LEVEL_PERIOD;
             }
         }
 

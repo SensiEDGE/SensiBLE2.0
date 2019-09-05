@@ -1,6 +1,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "peripheral_mngr_app.h"
 #include "steval_bluemic1.h" 
@@ -22,6 +23,8 @@ extern uint16_t APP_PER_enabled;
 
 volatile BOOL ForceReCalibration = FALSE;
 
+extern volatile uint8_t audio_streaming_active;
+
 /* Local symbols -------------------------------------------------------------*/
 static uint16_t EnvServHandle;
 
@@ -37,6 +40,7 @@ static uint16_t LedCharHandle;
 static uint16_t Co_LuxCharHandle;
 static uint16_t SwitchCharHandle;
 static uint16_t VbatHandle;
+static uint16_t AudioLevelCharHandle;
 
 static uint16_t ConfigServW2STHandle;
 static uint16_t ConfigCharHandle;
@@ -63,7 +67,7 @@ static uint32_t ConnectionBleStatus;
 
 #define MCU_TYPE                "BlueNRG_1"
 #define PACKAGE_NAME            "SensiBLE-2.0"
-#define VERSION                 '2','1','5'
+#define VERSION                 '2','1','6'
 
 /* Global symbols ------------------------------------------------------------*/
 
@@ -89,6 +93,8 @@ do {\
 #define COPY_HW_SENS_W2ST_SERVICE_UUID(uuid_struct)    COPY_UUID_128(uuid_struct,0x00,0x00,0x00,0x00,0x00,0x01,0x11,0xe1,0x9a,0xb4,0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 #define COPY_ECOMPASS_W2ST_CHAR_UUID(uuid_struct)      COPY_UUID_128(uuid_struct,0x00,0x00,0x00,0x40,0x00,0x01,0x11,0xe1,0xac,0x36,0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 #define COPY_ENVIRONMENTAL_W2ST_CHAR_UUID(uuid_struct) COPY_UUID_128(uuid_struct,0x00,0x00,0x00,0x00,0x00,0x01,0x11,0xe1,0xac,0x36,0x00,0x02,0xa5,0xd5,0xc5,0x1b)
+
+#define COPY_MIC_W2ST_CHAR_UUID(uuid_struct)           COPY_UUID_128(uuid_struct,0x04,0x00,0x00,0x00,0x00,0x01,0x11,0xe1,0xac,0x36,0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 
 #define COPY_LED_W2ST_CHAR_UUID(uuid_struct)           COPY_UUID_128(uuid_struct,0x20,0x00,0x00,0x00,0x00,0x01,0x11,0xe1,0xac,0x36,0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 //#define COPY_LUX_W2ST_CHAR_UUID(uuid_struct)           COPY_UUID_128(uuid_struct,0x01,0x00,0x00,0x00,0x00,0x01,0x11,0xe1,0xac,0x36,0x00,0x02,0xa5,0xd5,0xc5,0x1b)
@@ -172,6 +178,14 @@ used in Console service */
 #define W2ST_ON_CONNECTION(BleChar)    (ConnectionBleStatus|=(BleChar))
 #define W2ST_OFF_CONNECTION(BleChar)   (ConnectionBleStatus&=(~BleChar))
 //OTA defines end
+
+#define AUDIO_VOLUME_VALUE       64
+#define AUDIO_CHANNELS           1
+/* Define The transmission interval in Multiple of 10ms for Microphones dB Values */
+#define MICS_DB_UPDATE_MUL_10MS 5
+
+volatile float RMS_Ch[AUDIO_CHANNELS];
+float DBNOISE_Value_Old_Ch[AUDIO_CHANNELS];
 
 /* Feature mask for Led switch */
 #define FEATURE_MASK_LED_SWITCH  0x20000000
@@ -269,6 +283,50 @@ void sensible_aci_gatt_attribute_modified_event(uint16_t Connection_Handle,
             APP_PER_enabled &= ~APP_BAT_ENABLE;
             BSP_BatLevel_IN_DeInit();
             BSP_AUDIO_IN_Init(AUDIO_SAMPLING_FREQUENCY);
+        }
+    }
+    
+    /* ---------------------------------------------------------------------- */
+    /* Mic level enable / disable command */
+    if (Attr_Handle == AudioLevelCharHandle + 2)
+    {
+        if (Attr_Data[0] == 01)
+        {
+            APP_PER_enabled |= APP_MIC_LEVEL_ENABLE;
+            for(int32_t Count=0;Count<AUDIO_CHANNELS;Count++)
+            {
+                RMS_Ch[Count]=0;
+                DBNOISE_Value_Old_Ch[Count] =0;
+            }
+
+            if(!audio_streaming_active)
+            {        
+                BV_APP_StartStop_ctrl();
+            }
+            
+            BluevoiceADPCM_BNRG1_AttributeModified_CB(Attr_Handle, Attr_Data_Length, Attr_Data);
+
+//            /* Start the TIM Base generation in interrupt mode */
+//            if(HAL_TIM_Base_Start_IT(&TimAudioDataHandle) != HAL_OK)
+//            {
+//                /* Starting Error */
+//                Error_Handler();
+//            }
+        } else if (Attr_Data[0] == 0)
+        {
+            APP_PER_enabled &= ~APP_MIC_LEVEL_ENABLE;
+            
+            if(audio_streaming_active)
+            {
+                BV_APP_StartStop_ctrl();
+            }
+
+//            /* Stop the TIM Base generation in interrupt mode */
+//            if(HAL_TIM_Base_Stop_IT(&TimAudioDataHandle) != HAL_OK)
+//            {
+//                /* Stopping Error */
+//                Error_Handler();
+//            }
         }
     }
     
@@ -383,7 +441,50 @@ void sensible_aci_gatt_attribute_modified_event(uint16_t Connection_Handle,
         }
     }
 }
+
+/**
+* @brief  User function that is called when 1 ms of PDM data is available.
+* @param  none
+* @retval None
+*/
+void AudioProcess(uint16_t* PCM_Buffer)
+{
+    if ((APP_PER_enabled & APP_MIC_LEVEL_ENABLE) != 0)
+    {
+        for(int32_t i = 0; i < PCM_BUFFER_SIZE/2; i++)
+        {
+            for(int32_t NumberMic=0;NumberMic<AUDIO_CHANNELS;NumberMic++)
+            {
+                RMS_Ch[NumberMic] += (float)((int16_t)PCM_Buffer[i*AUDIO_CHANNELS+NumberMic]
+                                             * ((int16_t)PCM_Buffer[i*AUDIO_CHANNELS+NumberMic]));
+            }
+        }
+    }
+}
+
+void MicLevelUpdate()
+{
+    uint16_t DBNOISE_Value_Ch[AUDIO_CHANNELS];
+    uint8_t buff[2+1*(AUDIO_CHANNELS)];
+    
+    for(int32_t NumberMic=0;NumberMic<(AUDIO_CHANNELS);NumberMic++) {
+        DBNOISE_Value_Ch[NumberMic] = 0;
         
+        RMS_Ch[NumberMic] /= (16.0f*MICS_DB_UPDATE_MUL_10MS*10);
+        
+        DBNOISE_Value_Ch[NumberMic] = (uint16_t)((120.0f - 20 * log10f(32768 * (1 + 0.25f * (AUDIO_VOLUME_VALUE /*AudioInVolume*/ - 4))) + 10.0f * log10f(RMS_Ch[NumberMic])) * 0.3f + DBNOISE_Value_Old_Ch[NumberMic] * 0.7f);
+        DBNOISE_Value_Old_Ch[NumberMic] = DBNOISE_Value_Ch[NumberMic];
+        RMS_Ch[NumberMic] = 0.0f;
+    }
+    
+    STORE_LE_16(buff,(lSystickCounter>>3));
+    for(uint16_t Counter=0;Counter<(AUDIO_CHANNELS);Counter++)
+    {
+        buff[2+Counter]= DBNOISE_Value_Ch[Counter]&0xFF;
+    }
+    aci_gatt_update_char_value(EnvServHandle, AudioLevelCharHandle, 0, sizeof(buff), buff);
+}
+
 /**
  * @brief Update all charachteristics
  */
@@ -551,6 +652,19 @@ tBleStatus Add_Environmental_Sensor_Service(void)
     goto fail;
   }
   /* ************************ */
+  /* Mic level characteristic */
+  COPY_MIC_W2ST_CHAR_UUID(uuid);
+  ret =  aci_gatt_add_char(EnvServHandle, UUID_TYPE_128, (Char_UUID_t*)uuid,2+AUDIO_CHANNELS,
+                           CHAR_PROP_NOTIFY,
+                           ATTR_PERMISSION_NONE,
+                           GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP,
+                           16, 0, &AudioLevelCharHandle);
+
+  if (ret != BLE_STATUS_SUCCESS) {
+    goto fail;
+  }
+  
+  /* ************************ */
   COPY_CONFIG_SERVICE_UUID(uuid);
   ret = aci_gatt_add_service(UUID_TYPE_128,  (Service_UUID_t*)uuid, PRIMARY_SERVICE, 1+3,&ConfigServW2STHandle);
   
@@ -568,7 +682,6 @@ tBleStatus Add_Environmental_Sensor_Service(void)
     goto fail;
   }
   /* ************************ */
-  
                            
   return BLE_STATUS_SUCCESS;
 

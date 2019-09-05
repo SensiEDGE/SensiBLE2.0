@@ -48,6 +48,15 @@ tBleStatus ECompass_Update(uint16_t Angle);
 
 void LedUpdate(Led_TypeDef led);
 void BatUpdate();
+
+/**
+* @brief  User function that is called when 1 ms of PDM data is available.
+* @param  none
+* @retval None
+*/
+void AudioProcess(uint16_t* PCM_Buffer);
+
+void MicLevelUpdate();
                                                 
 void UpdateAll(void);
 
