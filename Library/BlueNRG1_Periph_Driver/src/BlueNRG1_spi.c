@@ -2,8 +2,8 @@
 ******************************************************************************
 * @file    BlueNRG1_spi.c
 * @author  VMA Application Team
-* @version V2.0.0
-* @date    21-March-2016
+  * @version V2.1.0
+  * @date    31-January-2017
 * @brief   This file provides all the SPI firmware functions.
 ******************************************************************************
 * @attention
@@ -310,6 +310,65 @@ void SPI_DataSizeConfig(uint16_t SPI_DataSize)
   /* set the datasize */  
   SPI->CR0_b.DSS = SPI_DataSize;
 }
+
+/**
+* @brief  Configures the command size for the selected SPI.
+* @param  SPI_DataSize: specifies the SPI command size.
+*         This parameter can be one of the following values:
+*         @arg SPI_DataSize_32b: Set data frame format to 32bit
+*         ...
+*         @arg SPI_DataSize_5b: Set data frame format to 5bit
+*         @arg SPI_DataSize_4b: Set data frame format to 4bit
+* @retval None
+*/
+void SPI_CommandSizeConfig(uint16_t SPI_DataSize)
+{
+  /* Check the parameters */
+  assert_param(IS_SPI_DATASIZE(SPI_DataSize));
+  
+  /* set the datasize */  
+  SPI->CR0_b.CSS = SPI_DataSize;
+}
+
+/**
+* @brief  Enable the wait state only for Microwire mode.
+* @param  NewState: functional state @ref FunctionalState
+*         This parameter can be: ENABLE or DISABLE.
+* @retval None
+*/
+void SPI_EnableWaitState(FunctionalState NewState)
+{
+  /* Check the parameters */
+  assert_param(IS_FUNCTIONAL_STATE(NewState));
+  
+  if (NewState != DISABLE) {
+    /* Enable the wait state  */
+    SPI->CR1_b.MSPIWAIT = RESET;
+  }
+  else {
+    /* Disable the wait state  */
+    SPI->CR1_b.MSPIWAIT = SET;
+  }
+}
+
+
+/**
+* @brief  Configures the frame format for the selected SPI.
+* @param  SPI_FrameFormat: specifies the SPI frame format.
+*         This parameter can be one of the following values:
+*         @arg SPI_FrmFrmt_Motorola: Set the Motorola SPI frame format
+*         @arg SPI_FrmFrmt_Microwire: Set the MicroWire frame format
+* @retval None
+*/
+void SPI_FrameFormatConfig(uint8_t SPI_FrameFormat)
+{
+  /* Check the parameters */
+  assert_param(IS_SPI_FRMFRMT(SPI_FrameFormat));
+  
+  /* set the datasize */  
+  SPI->CR0_b.FRF = SPI_FrameFormat;
+}
+
 
 /**
 * @brief  Checks whether the specified SPI flag is set or not.

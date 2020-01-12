@@ -29,7 +29,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "BlueNRG1.h"
+#include "BlueNRG_x_device.h"
 
 /** @addtogroup BLUENRG1_Peripheral_Driver BLUENRG1 Peripheral Driver
   * @{
@@ -202,7 +202,7 @@ typedef struct
 #define DMA_FLAG_TC                          ((uint32_t)0x00000002)
 #define DMA_FLAG_HT                          ((uint32_t)0x00000004)
 #define DMA_FLAG_TE                          ((uint32_t)0x00000008)
-#define IS_DMA_CONFIG_FLAG(FLAG) ((FLAG & 0x0E) != 0)
+#define IS_DMA_CONFIG_FLAG(FLAG) (((FLAG) & 0x0E) != 0)
 
 /**
   * @}

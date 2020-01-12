@@ -19,7 +19,7 @@
 ******************************************************************************
 */ 
 /* Includes ------------------------------------------------------------------*/
-#include "BlueNRG1.h"
+#include "BlueNRG_x_device.h"
 #include "BlueNRG1_conf.h"
 #include "clock.h"
 
@@ -33,8 +33,14 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define SYSCLK_FREQ 	32000000//16000000            /*< System clock frequency */ 
-#define RELOAD_VALUE   (SYSCLK_FREQ/1000)-1 // One clock each 1 ms
+
+#if ((HS_SPEED_XTAL == HS_SPEED_XTAL_32MHZ)&&(FORCE_CORE_TO_16MHZ != 1))
+  #define SYSCLK_FREQ 	32000000            /* System clock frequency */ 
+#elif (HS_SPEED_XTAL == HS_SPEED_XTAL_16MHZ)||(FORCE_CORE_TO_16MHZ == 1)
+   #define SYSCLK_FREQ 	16000000            /* System clock frequency */ 
+#else
+#error "No definition for SYSCLK_FREQ"
+#endif
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -52,7 +58,7 @@ void SysCount_Handler(void)
 void Clock_Init(void)
 {
   /** Configure SysTick to generate Interrupt with 1ms period */
-  SysTick_Config(RELOAD_VALUE);
+  SysTick_Config(SYSCLK_FREQ/1000 - 1);  
 }
 
 /*---------------------------------------------------------------------------*/

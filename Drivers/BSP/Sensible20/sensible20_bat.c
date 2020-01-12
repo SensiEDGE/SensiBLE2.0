@@ -38,6 +38,8 @@
 #include "peripheral_mngr_app.h"
 #include "sensible20_port_exp.h"
 
+#include "BlueNRG1_adc.h"
+
 /* Private function prototypes begin -----------------------------------------*/
 static float parseVoltage(float value);
 /* Private function prototypes end  ------------------------------------------*/
@@ -93,7 +95,7 @@ void BSP_BatLevel_IN_Init(void)
     ADC_InitType xADC_InitType;
 
     /* Configure ADC */    
-    xADC_InitType.ADC_DecimationRate = ADC_DecimationRate_200;
+    xADC_InitType.ADC_OSR = ADC_OSR_200;
     xADC_InitType.ADC_Input = ADC_Input_AdcPin2;
     xADC_InitType.ADC_ConversionMode = ADC_ConversionMode_Continuous;//ADC_ConversionMode_Single;//
     xADC_InitType.ADC_ReferenceVoltage = ADC_ReferenceVoltage_0V6;

@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    BlueNRG1_adc.h
   * @author  VMA Application Team
-  * @version V2.1.0
-  * @date    21-March-2016
+  * @version V2.4.0
+  * @date    4-May-2018
   * @brief   This file contains all the functions prototypes for the ADC firmware 
   *          library.
   ******************************************************************************
@@ -29,7 +29,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "BlueNRG1.h"
+#include "BlueNRG_x_device.h"
 
 /** @addtogroup BLUENRG1_Peripheral_Driver BLUENRG1 Peripheral Driver
   * @{
@@ -47,8 +47,8 @@
   * @brief  Structure definition of ADC initialization 
   */  
 typedef struct {
-  uint8_t ADC_DecimationRate;                   /*!< Specifies the decimation rate.
-                                                  This parameter can be a value of @ref ADC_DecimationRate */
+  uint8_t ADC_OSR;                              /*!< Specifies the decimation rate.
+                                                  This parameter can be a value of @ref ADC_OSR */
   
   uint8_t ADC_Input;                            /*!< Specifies the input used for the conversion.
                                                   This parameter can be a value of @ref ADC_Input */
@@ -77,15 +77,15 @@ typedef struct {
 /** @defgroup ADC_Decimation_Rate_Definitions   Decimation Rate Definitions
   * @{
   */
-#define ADC_DecimationRate_200                         ((uint8_t)0x00)
-#define ADC_DecimationRate_100                         ((uint8_t)0x01)
-#define ADC_DecimationRate_64                          ((uint8_t)0x02)
-#define ADC_DecimationRate_32                          ((uint8_t)0x03)
+#define ADC_OSR_200                         ((uint8_t)0x00)  /* Recommended value for DC signals */
+#define ADC_OSR_100                         ((uint8_t)0x01)
+#define ADC_OSR_64                          ((uint8_t)0x02)
+#define ADC_OSR_32                          ((uint8_t)0x03)
 
-#define IS_ADC_DECIMATIONRATE(DECIMATIONRATE) (((DECIMATIONRATE) == ADC_DecimationRate_200) || \
-                                       ((DECIMATIONRATE) == ADC_DecimationRate_100) || \
-                                       ((DECIMATIONRATE) == ADC_DecimationRate_64) || \
-                                       ((DECIMATIONRATE) == ADC_DecimationRate_32))
+#define IS_ADC_OSR(OSR) (((OSR) == ADC_OSR_200) || \
+                                       ((OSR) == ADC_OSR_100) || \
+                                       ((OSR) == ADC_OSR_64) || \
+                                       ((OSR) == ADC_OSR_32))
 /**
   * @}
   */ 
@@ -95,14 +95,14 @@ typedef struct {
   * @{
   */
 #define ADC_Input_None                          ((uint8_t)0x00)
-#define ADC_Input_AdcPin2                       ((uint8_t)0x01)
-#define ADC_Input_AdcPin1                       ((uint8_t)0x02)
-#define ADC_Input_AdcPin12                      ((uint8_t)0x03)
-#define ADC_Input_TempSensor                    ((uint8_t)0x04)
-#define ADC_Input_BattSensor                    ((uint8_t)0x05)
-#define ADC_Input_Internal0V60V6                ((uint8_t)0x06)
-#define ADC_Input_Internal1V20V0                ((uint8_t)0x07)
-#define ADC_Input_Microphone                    ((uint8_t)0x0F)
+#define ADC_Input_AdcPin2                       ((uint8_t)0x01) /* Single ended input from ADC2 pin */
+#define ADC_Input_AdcPin1                       ((uint8_t)0x02) /* Single ended input from ADC1 pin */
+#define ADC_Input_AdcPin12                      ((uint8_t)0x03) /* Differential input */
+#define ADC_Input_TempSensor                    ((uint8_t)0x04) /* Temperature sensor */
+#define ADC_Input_BattSensor                    ((uint8_t)0x05) /* Internal battery detector */
+#define ADC_Input_Internal0V60V6                ((uint8_t)0x06) /* Test input */
+#define ADC_Input_Internal1V20V0                ((uint8_t)0x07) /* Test input */
+#define ADC_Input_Microphone                    ((uint8_t)0x0F) /* Microphone mode */
 
 #define IS_ADC_INPUT(INPUT) (((INPUT) == ADC_Input_None) || \
                                              ((INPUT) == ADC_Input_AdcPin1) || \
@@ -123,6 +123,9 @@ typedef struct {
   * @{
   */
 #define ADC_ConversionMode_Single                          ((uint8_t)0x00)
+
+/* The user must discards the first 10 converted samples in continuous mode if the SKIP bit is 0. 
+ * The user must discards the first 3 converted samples in continuous mode if the SKIP bit is 1.  */
 #define ADC_ConversionMode_Continuous                      ((uint8_t)0x08)
 
 #define IS_ADC_CONVERSIONMODE(CONVERSIONMODE) (((CONVERSIONMODE) == ADC_ConversionMode_Single) || \
@@ -152,15 +155,11 @@ typedef struct {
   * @{
   */
 
-#define ADC_ReferenceVoltage_0V              ((uint8_t)0x00)
-#define ADC_ReferenceVoltage_0V4             ((uint8_t)0x01)
-#define ADC_ReferenceVoltage_0V6             ((uint8_t)0x02)
-#define ADC_ReferenceVoltage_1V2             ((uint8_t)0x03)
+#define ADC_ReferenceVoltage_0V6             ((uint8_t)0x02)    /* Optimal setting */
+#define ADC_ReferenceVoltage_0V0             ((uint8_t)0x00)    /* Default value: not recommended   */
 
-#define IS_ADC_REFERENCEVOLTAGE(REFERENCEVOLTAGE) (((REFERENCEVOLTAGE) == ADC_ReferenceVoltage_0V) || \
-                                                  ((REFERENCEVOLTAGE) == ADC_ReferenceVoltage_0V4) || \
-                                                  ((REFERENCEVOLTAGE) == ADC_ReferenceVoltage_0V6) || \
-                                                  ((REFERENCEVOLTAGE) == ADC_ReferenceVoltage_1V2))
+#define IS_ADC_REFERENCEVOLTAGE(REFERENCEVOLTAGE) (((REFERENCEVOLTAGE) == ADC_ReferenceVoltage_0V6) || \
+                                                  ((REFERENCEVOLTAGE) == ADC_ReferenceVoltage_0V0))
 /**
   * @}
   */ 
@@ -187,7 +186,7 @@ typedef struct {
 #define ADC_FLAG_EOC          ((uint8_t)0x04)  /*!< End of Conversion flag */
 #define ADC_FLAG_WDG          ((uint8_t)0x08)  /*!< Value within set threshold */
 
-#define IS_ADC_GET_FLAG(FLAG) ((FLAG & 0x0F) != 0)
+#define IS_ADC_GET_FLAG(FLAG) (((FLAG) & 0x0F) != 0)
 
 /**
   * @}
@@ -201,37 +200,33 @@ typedef struct {
 /** @defgroup ADC_Exported_Functions Exported Functions
   * @{
   */
-    
 void ADC_Init(ADC_InitType* ADC_InitStruct);
 void ADC_DeInit(void);
 void ADC_StructInit(ADC_InitType* ADC_InitStruct);
 void ADC_Cmd(FunctionalState NewState);
 void ADC_DmaCmd(FunctionalState NewState);
+void ADC_Filter(FunctionalState NewState);
+void ADC_SelectInput(uint8_t AdcInput);
 void ADC_Calibration(FunctionalState NewState);
 void ADC_AutoOffsetUpdate(FunctionalState NewState);
+void ADC_SetOffset(uint16_t Offset);
+uint16_t ADC_GetOffset(void);
 void ADC_ThresholdCheck(FunctionalState NewState);
 void ADC_ThresholdConfig(uint32_t ThresholdLow, uint32_t ThresholdHigh);
 void ADC_ConversionMode(uint8_t ConvertionMode);
 void ADC_SelectFrequencyMic(uint8_t Frequency);
-void ADC_RoundConvertedData(FunctionalState NewState);
 float ADC_GetConvertedData(uint8_t DataType, uint8_t Vref);
+uint8_t ADC_GetFlags(void);
 FlagStatus ADC_GetFlagStatus(uint8_t ADC_Flag);
 ITStatus ADC_GetITStatus(uint8_t ADC_Flag);
 void ADC_ITConfig(uint8_t ADC_Flag, FunctionalState NewState);
 
-float ADC_ConvertDifferentialVoltage(int32_t raw_value, uint8_t attenuation);
-float ADC_ConvertSingleEndedVoltage(int32_t raw_value, uint8_t channel, uint8_t vRef, uint8_t attenuation);
-float ADC_ConvertBatterySensor(int32_t raw_value, uint8_t vRef);
-float ADC_ConvertTemperatureSensor(int32_t raw_value, uint8_t vRef, uint8_t attenuation);
+float ADC_ConvertDifferentialVoltage(int16_t raw_value, uint8_t attenuation);
+float ADC_ConvertSingleEndedVoltage(int16_t raw_value, uint8_t channel, uint8_t vRef, uint8_t attenuation);
+float ADC_ConvertBatterySensor(int16_t raw_value, uint8_t vRef);
+float ADC_ConvertTemperatureSensor(int16_t raw_value, uint8_t vRef, uint8_t attenuation);
 
-/**
-* @brief  Get the ADC raw value.
-* @param  None
-* @retval ADC raw value
-*/
-#define ADC_GetRawData()     READ_REG(ADC->DATA_CONV)
-
-
+uint16_t ADC_GetRawData(void);
 
 /**
   * @}

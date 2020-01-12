@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    BlueNRG1_flash.h
   * @author  VMA Application Team
-  * @version V2.0.0
-  * @date    21-March-2016
+  * @version V2.1.1
+  * @date    31-January-2017
   * @brief   This file contains all the functions prototypes for the FLASH 
   *          firmware library.
   ******************************************************************************
@@ -29,7 +29,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "BlueNRG1.h"
+#include "BlueNRG_x_device.h"
 
 /** @addtogroup BLUENRG1_Peripheral_Driver BLUENRG1 Peripheral Driver
   * @{
@@ -77,18 +77,18 @@
 
 #define IS_FLASH_ADDRESS(ADDR) ( ((ADDR) >= FLASH_START) && ((ADDR) <= FLASH_END) )
 
-
-#define N_PAGES       80
-#define N_ROWS        8
-#define N_WORDS_ROW   64  
-#define N_WORDS_PAGE  512
-#define N_BYTES_WORD  4
-#define N_BYTES_PAGE  2048
+#define N_BYTES_WORD  (4)
+#define N_ROWS        (8)
+#define N_BYTES_PAGE  (_MEMORY_BYTES_PER_PAGE_)
+#define N_PAGES       (_MEMORY_FLASH_SIZE_/N_BYTES_PAGE)
+#define N_WORDS_ROW   (N_BYTES_PAGE /  N_ROWS / N_BYTES_WORD)
+#define N_WORDS_PAGE  (N_BYTES_PAGE / N_BYTES_WORD)
 
 #define IS_PAGE_NUMBER(PAGE)  ( (PAGE)<N_PAGES )
 #define IS_ROW_NUMBER(ROW)    ( (ROW)<N_ROWS )
 #define IS_WORD_NUMBER(WORD)  ( (WORD)<N_WORDS_PAGE )
 
+/* Remap values for the vector table. CONFIG register */
 #define FLASH_REMAP_RAM      0x02
 #define FLASH_PREMAP_MAIN    0x08
 
@@ -139,10 +139,12 @@
 void FLASH_ErasePage(uint16_t PageNumber);
 void FLASH_EraseAllFlash(void);
 uint32_t FLASH_ReadWord(uint32_t Address);
+uint8_t FLASH_ReadByte(uint32_t Address);
 void FLASH_ProgramWord(uint32_t Address, uint32_t Data);
 void FLASH_ProgramWordBurst(uint32_t Address, uint32_t* Data);
+void FLASH_Lock(void);
+void FLASH_Unlock(void);
 void FLASH_WaitCmdDone(void);
-uint16_t FLASH_NextFreeFlashAddress(void);
 void FLASH_ITConfig(uint8_t FlashFlag, FunctionalState NewState);
 void FLASH_ClearITPendingBit(uint8_t FlashFlag);
 FlagStatus FLASH_GetFlagStatus(uint8_t FlashFlag);
@@ -168,4 +170,3 @@ void FLASH_ClearFlag(uint8_t FlashFlag);
 #endif /* BLUENRG1_FLASH_H */
 
 /******************* (C) COPYRIGHT 2016 STMicroelectronics *****END OF FILE****/
-

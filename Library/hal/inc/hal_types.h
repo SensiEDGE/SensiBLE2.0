@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    hal_types.h
   * @author  AMS - VMA RF Application team
-  * @version V1.0.0
-  * @date    21-Sept-2015
+  * @version V1.0.1
+  * @date    3-April-2018
   * @brief   Header file that includes hal types for BlueNRG-1 SoC
   ******************************************************************************
   * @attention
@@ -23,10 +23,6 @@
 
 #include <stdint.h>
 
-/**@brief TRUE, FALSE definition */
-#define TRUE  1
-#define FALSE 0
-
 /**@brief RESET,SET definition */
 typedef enum {RESET = 0, SET} FlagStatus, ITStatus;
 /**@brief Macro that checks if STATE is a FlagStatus / ITStatus */
@@ -43,11 +39,11 @@ typedef enum {SUCCESS = 0, ERROR} ErrorStatus;
 #define IS_ERROR_STATE(STATE) (((STATE) == SUCCESS) || ((STATE) == ERROR))
 
 
-/** @brief Macro that stores Value into a buffer in Little Endian Format (2 bytes)*/
+/** @brief Macro that stores a 16-bit value into a buffer in Little Endian Format (2 bytes)*/
 #define HOST_TO_LE_16(buf, val)    ( ((buf)[0] =  (uint8_t) (val)    ) , \
                                    ((buf)[1] =  (uint8_t) (val>>8) ) )
 
-/** @brief Macro that stores  Little Endian Format into a buffer value */
+/** @brief Macro that returns a value from a 32-bit buffer where the value is stored in Little Endian Format */
 #define LE_TO_HOST_32(ptr)   (uint32_t) ( ((uint32_t) \
                                            *((uint8_t *)ptr)) | \
                                            ((uint32_t) \
@@ -57,7 +53,7 @@ typedef enum {SUCCESS = 0, ERROR} ErrorStatus;
                                            ((uint32_t) \
                                             *((uint8_t *)ptr + 3) << 24) )
 
-/** @brief Macro that stores Value into a buffer in Little Endian Format (4 bytes) */
+/** @brief Macro that stores a 32-bit value into a buffer in Little Endian Format (4 bytes) */
 #define HOST_TO_LE_32(buf, val)    ( ((buf)[0] =  (uint8_t) (val)     ) , \
                                    ((buf)[1] =  (uint8_t) (val>>8)  ) , \
                                    ((buf)[2] =  (uint8_t) (val>>16) ) , \
@@ -66,5 +62,8 @@ typedef enum {SUCCESS = 0, ERROR} ErrorStatus;
 /** @brief Booelan definition */
 typedef uint8_t BOOL;
 
+/**@brief TRUE, FALSE definition */
+#define TRUE  ((BOOL)1U)
+#define FALSE ((BOOL)0U)
 
 #endif /* __HAL_TYPES_H__ */

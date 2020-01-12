@@ -57,8 +57,8 @@ static DrvStatusTypeDef APDS9250_Sensor_Enable    ( DrvContextTypeDef *handle );
 static DrvStatusTypeDef APDS9250_Sensor_Disable   ( DrvContextTypeDef *handle );
 static DrvStatusTypeDef APDS9250_Get_WhoAmI       ( DrvContextTypeDef *handle, uint8_t *who_am_i );
 static DrvStatusTypeDef APDS9250_Check_WhoAmI     ( DrvContextTypeDef *handle );
-static DrvStatusTypeDef APDS9250_Read_Reg         ( DrvContextTypeDef *handle, uint8_t reg, uint8_t* data );
-static DrvStatusTypeDef APDS9250_Write_Reg        ( DrvContextTypeDef *handle, uint8_t reg, uint8_t data );
+DrvStatusTypeDef APDS9250_Read_Reg         ( DrvContextTypeDef *handle, uint8_t reg, uint8_t* data );
+DrvStatusTypeDef APDS9250_Write_Reg        ( DrvContextTypeDef *handle, uint8_t reg, uint8_t data );
 
 /**
  * @}
@@ -130,7 +130,7 @@ static DrvStatusTypeDef APDS9250_Check_WhoAmI     ( DrvContextTypeDef *handle )
     
     if(COMPONENT_OK == APDS9250_Get_WhoAmI(handle, &who_am_i)) {
         if((who_am_i & APDS9250_DEVICE_ID_MASK) ==
-            APDS9250_PART_ID & APDS9250_DEVICE_ID_MASK) {
+            (APDS9250_PART_ID & APDS9250_DEVICE_ID_MASK)) {
             return COMPONENT_OK;
         }
     }
@@ -178,7 +178,7 @@ static DrvStatusTypeDef APDS9250_Get_Light ( DrvContextTypeDef *handle, uint32_t
     return COMPONENT_ERROR;
 }
 
-static DrvStatusTypeDef APDS9250_Read_Reg( DrvContextTypeDef *handle, uint8_t reg, uint8_t *data )
+DrvStatusTypeDef APDS9250_Read_Reg( DrvContextTypeDef *handle, uint8_t reg, uint8_t *data )
 {
   if ( APDS9250_ReadReg( (void *)handle, reg, 1, data ) == APDS9250_ERROR )
   {
@@ -188,7 +188,7 @@ static DrvStatusTypeDef APDS9250_Read_Reg( DrvContextTypeDef *handle, uint8_t re
   return COMPONENT_OK;
 }
 
-static DrvStatusTypeDef APDS9250_Write_Reg( DrvContextTypeDef *handle, uint8_t reg, uint8_t data )
+DrvStatusTypeDef APDS9250_Write_Reg( DrvContextTypeDef *handle, uint8_t reg, uint8_t data )
 {
 
   if ( APDS9250_WriteReg( (void *)handle, reg, 1, &data ) == APDS9250_ERROR )

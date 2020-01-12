@@ -20,6 +20,8 @@
 #include "BlueNRG1_gpio.h"
 #include "BlueNRG1_sysCtrl.h"
 
+#include "main.h"
+
 /* Private defines begin -----------------------------------------------------*/
 #define BLUENRG1_SPI_BAUDRATE   8000000
 
@@ -113,7 +115,7 @@ BlueNRG1_SPI_StatusTypeDef BlueNRG1_SPI_Transmit(uint8_t* msg, uint16_t size,
         return BlueNRG1_SPI_TIMEOUT;
     }
 
-    uint32_t tickstart = lSystickCounter;
+    uint32_t tickstart = tick_ms();
     for(uint16_t i = 0; i < size; i++)
     {
         /* Write data to send to TX FIFO */
@@ -123,7 +125,7 @@ BlueNRG1_SPI_StatusTypeDef BlueNRG1_SPI_Transmit(uint8_t* msg, uint16_t size,
         SPI_ReceiveData();
         while (SET == SPI_GetFlagStatus(SPI_FLAG_BSY));
         
-        if((lSystickCounter - tickstart) >= timeout){
+        if((tick_ms() - tickstart) >= timeout){
             return BlueNRG1_SPI_TIMEOUT;
         }
     }
@@ -148,7 +150,7 @@ BlueNRG1_SPI_StatusTypeDef BlueNRG1_SPI_Receive(uint8_t *pData, uint16_t size,
         return BlueNRG1_SPI_TIMEOUT;
     }
 
-    uint32_t tickstart = lSystickCounter;
+    uint32_t tickstart = tick_ms();
     for(uint16_t i = 0; i < size; i++)
     {
         while(RESET == SPI_GetFlagStatus(SPI_FLAG_TFE));
@@ -158,7 +160,7 @@ BlueNRG1_SPI_StatusTypeDef BlueNRG1_SPI_Receive(uint8_t *pData, uint16_t size,
         pData[i] = tmp & 0xFF;
         while (SET == SPI_GetFlagStatus(SPI_FLAG_BSY));
         
-        if((lSystickCounter - tickstart) >= timeout){
+        if((tick_ms() - tickstart) >= timeout){
             return BlueNRG1_SPI_TIMEOUT;
         }
     }

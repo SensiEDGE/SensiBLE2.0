@@ -57,6 +57,14 @@
 #define NORETURN_FUNCTION(function)                 __noreturn function
 
 /**
+  * @brief  NOSTACK_FUNCTION
+  *         Use the NOSTACK_FUNCTION macro to indicate that function should not use any stack.
+  *         Typical usage is for hard fault handler, to avoid altering the value of the stack pointer.
+  *         Usage:  NOSTACK_FUNCTION(void my_noretrun_function(void))
+  */
+#define NOSTACK_FUNCTION(function)                 __stackless function
+
+/**
   * @brief  SECTION
   *         Use the SECTION macro to assign data or code in a specific section.
   *         Usage:  SECTION(".my_section")
@@ -79,26 +87,25 @@
 
 /**
   * @brief  NO_INIT
-  *         Use the NO_INIT macro to declare a not initialized variable.
+  *         Use the NO_INIT macro to declare a not initialized variable in RAM
   *         Usage:  NO_INIT(int my_no_init_var)
   *         Usage:  NO_INIT(uint16_t my_no_init_array[10])
   */
 #define NO_INIT(var)                   __no_init var
 
+
 /**
-  * @brief  NOLOAD
-  *         Use the NOLOAD macro to declare a not initialized variable that 
-  *             must be placed in a specific section in Flash.
-  *             Before the NOLOAD declaration, the SECTION declaration must be used.
-  *
-  *         SECTION(".noinit.ro_section_my_noload_var")
-  *         Usage:  NOLOAD(int my_noload_var)
+  * @brief  NO_INIT_SECTION
+  *         Use the NO_INIT_SECTION macro to declare a not initialized variable in RAM in
+  *         in a specific section.
+  *         Usage:  NO_INIT_SECTION(int my_no_init_var, "MySection")
+  *         Usage:  NO_INIT_SECTION(uint16_t my_no_init_array[10], "MySection")
   */
-#define NOLOAD(var)                    NO_INIT(var)
+#define NO_INIT_SECTION(var, sect)                  SECTION(sect) __no_init var
 
 #define VARIABLE_SIZE 0
 #pragma segment = "CSTACK"
-#define _INITIAL_SP                    { .__ptr = __sfe( "CSTACK" ) }  /* Stack address */
+#define _INITIAL_SP                  __sfe( "CSTACK" ) /* Stack address */
 extern void __iar_program_start(void);
 #define RESET_HANDLER                  __iar_program_start
 
@@ -161,24 +168,30 @@ extern void __iar_program_start(void);
 #define NORETURN_FUNCTION(function)     __attribute__((noreturn)) function 
 
 /**
+  * @brief  NOSTACK_FUNCTION
+  *         Use the NOSTACK_FUNCTION macro to indicate that function should not use any stack.
+  *         Typical usage is for hard fault handler, to avoid altering the value of the stack pointer.
+  *         Usage:  NOSTACK_FUNCTION(void my_noretrun_function(void))
+  */
+#define NOSTACK_FUNCTION(function)                 __attribute__((naked)) function
+
+/**
   * @brief  NO_INIT
-  *         Use the NO_INIT macro to declare a not initialized variable.
+  *         Use the NO_INIT macro to declare a not initialized variable placed in RAM
+  *         Linker script has to make sure that section ".noinit" is not initialized
   *         Usage:  NO_INIT(int my_no_init_var)
   *         Usage:  NO_INIT(uint16_t my_no_init_array[10])
   */
 #define NO_INIT(var)                    var  __attribute__((section(".noinit")))
 
 /**
-  * @brief  NOLOAD
-  *         Use the NOLOAD macro to declare a not initialized variable that 
-  *             must be placed in a specific section in Flash.
-  *             Before the NOLOAD declaration, the SECTION declaration must be used.
-  *             Then, this section must be placed correctly in the linker file.
-  *
-  *         SECTION(".noinit.ro_section_my_noload_var")
-  *         Usage:  NOLOAD(int my_noload_var)
+  * @brief  NO_INIT_SECTION
+  *         Use the NO_INIT_SECTION macro to declare a not initialized variable.
+  *         In order to work properly this macro should be aligned with the linker file.
+  *         Usage:  NO_INIT_SECTION(int my_no_init_var, "MySection")
+  *         Usage:  NO_INIT_SECTION(uint16_t my_no_init_array[10], "MySection")
   */
-#define NOLOAD(var)                    var
+#define NO_INIT_SECTION(var, sect)                   var  __attribute__((section(sect)))
 
 #define _INITIAL_SP                     (void(*)(void))(&_estack)
 #define VARIABLE_SIZE 0
@@ -239,24 +252,31 @@ extern void __iar_program_start(void);
 #define NORETURN_FUNCTION(function)     __attribute__((noreturn)) function 
 
 /**
+  * @brief  NOSTACK_FUNCTION
+  *         Use the NOSTACK_FUNCTION macro to indicate that function should not use any stack.
+  *         Typical usage is for hard fault handler, to avoid altering the value of the stack pointer.
+  *         In keil this is a dummy implementation since no equivalent function is available
+  *         Usage:  NOSTACK_FUNCTION(void my_noretrun_function(void))
+  */
+#define NOSTACK_FUNCTION(function)                 function
+
+/**
   * @brief  NO_INIT
   *         Use the NO_INIT macro to declare a not initialized variable.
   *         Usage:  NO_INIT(int my_no_init_var)
   *         Usage:  NO_INIT(uint16_t my_no_init_array[10])
   */
-#define NO_INIT(var)                        var __attribute__((section("NoInit")))
+#define NO_INIT(var)                        var __attribute__((section( ".noinit.data" ), zero_init))
 
 /**
-  * @brief  NOLOAD
-  *         Use the NOLOAD macro to declare a not initialized variable that 
-  *             must be placed in a specific section in Flash.
-  *             Before the NOLOAD declaration, the SECTION declaration must be used.
-  *             Then, this section must be placed correctly in the linker file.
-  *
-  *         SECTION(".noinit.ro_section_my_noload_var")
-  *         Usage:  NOLOAD(int my_noload_var)
+  * @brief  NO_INIT_SECTION
+  *         Use the NO_INIT_SECTION macro to declare a not initialized variable that should be placed in a specific section.
+	*         Linker script is in charge of placing that section in RAM.
+  *         Usage:  NO_INIT_SECTION(int my_no_init_var, "MySection")
+  *         Usage:  NO_INIT_SECTION(uint16_t my_no_init_array[10], "MySection")
   */
-#define NOLOAD(var)                         var
+#define NO_INIT_SECTION(var, sect)                   var __attribute__((section( sect ), zero_init))
+
 
 extern void __main(void);
 extern int main(void);

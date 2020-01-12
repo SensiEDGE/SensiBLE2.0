@@ -2,7 +2,7 @@
   ******************************************************************************
   * @file    BlueNRG1_uart.h
   * @author  VMA Application Team
-  * @version V2.0.0
+  * @version V2.1.0
   * @date    21-March-2016
   * @brief   This file contains all the functions prototypes for the UART 
   *          firmware library.
@@ -29,7 +29,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "BlueNRG1.h"
+#include "BlueNRG_x_device.h"
 
 /** @addtogroup BLUENRG1_Peripheral_Driver BLUENRG1 Peripheral Driver
   * @{
@@ -226,18 +226,22 @@ typedef struct
   * @{
   */
   
-#define FIFO_LEV_1_8       ((uint8_t)0)       /*!< Interrupt FIFO becomes >= 1/8 full */
-#define FIFO_LEV_1_4       ((uint8_t)1)       /*!< Interrupt FIFO becomes >= 1/4 full */
-#define FIFO_LEV_1_2       ((uint8_t)2)       /*!< Interrupt FIFO becomes >= 1/2 full */
-#define FIFO_LEV_3_4       ((uint8_t)3)       /*!< Interrupt FIFO becomes >= 3/4 full */
-#define FIFO_LEV_7_8       ((uint8_t)4)       /*!< Interrupt FIFO becomes >= 7/8 full */
+#define FIFO_LEV_1_64       ((uint8_t)0)       /*!< FIFO threshold 1/64 */
+#define FIFO_LEV_1_32       ((uint8_t)1)       /*!< FIFO threshold 1/32 */
+#define FIFO_LEV_1_16       ((uint8_t)2)       /*!< FIFO threshold 1/16 */
+#define FIFO_LEV_1_8        ((uint8_t)3)       /*!< FIFO threshold 1/8 */
+#define FIFO_LEV_1_4        ((uint8_t)4)       /*!< FIFO threshold 1/4 */
+#define FIFO_LEV_1_2        ((uint8_t)5)       /*!< FIFO threshold 1/2 */
+#define FIFO_LEV_3_4        ((uint8_t)6)       /*!< FIFO threshold 3/4 */
 
 /* This macro checks if TX_FIFO_LEV is a valid Tx FIFO level */
-#define IS_FIFO_LEV(FIFO_LEV) ( ((FIFO_LEV) == FIFO_LEV_1_8) || \
+#define IS_FIFO_LEV(FIFO_LEV) ( ((FIFO_LEV) == FIFO_LEV_1_64) || \
+                                ((FIFO_LEV) == FIFO_LEV_1_32) || \
+                                ((FIFO_LEV) == FIFO_LEV_1_16) || \
+                                ((FIFO_LEV) == FIFO_LEV_1_8) || \
                                 ((FIFO_LEV) == FIFO_LEV_1_4) || \
                                 ((FIFO_LEV) == FIFO_LEV_1_2) || \
-                                ((FIFO_LEV) == FIFO_LEV_3_4) || \
-                                ((FIFO_LEV) == FIFO_LEV_7_8))
+                                ((FIFO_LEV) == FIFO_LEV_3_4))
 
 /**
   * @}
@@ -268,7 +272,7 @@ typedef struct
 #define UART_DMAReq_Rx                      ((uint8_t)0x01)
 
 /* This macro checks if DMAREQ is a valid DMA request value */
-#define IS_UART_DMAREQ(DMAREQ) (DMAREQ<(uint8_t)4 && DMAREQ!=(uint8_t)0 )
+#define IS_UART_DMAREQ(DMAREQ) ((DMAREQ)<(uint8_t)4 && (DMAREQ)!=(uint8_t)0 )
 
 /**
   * @}
@@ -316,7 +320,8 @@ ITStatus UART_GetITStatus(uint16_t UART_IT);
 void UART_ClearITPendingBit(uint16_t UART_IT);
 void UART_TxFifoIrqLevelConfig(uint8_t UART_TxFifo_Level);
 void UART_RxFifoIrqLevelConfig(uint8_t UART_RxFifo_Level);
-void UART_TimeoutConfig(uint32_t UART_Timeout);
+void UART_RXTimeoutConfig(uint32_t UART_TimeoutMS);
+void UART_Oversampling(FunctionalState NewState);
 void UART_SwFlowControl(FunctionalState NewState);
 void UART_RxSwFlowControlMode(uint8_t UART_RxSwFlowCtrlMode);
 void UART_TxSwFlowControlMode(uint8_t UART_TxSwFlowCtrlMode);

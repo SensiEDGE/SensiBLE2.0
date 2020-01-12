@@ -29,7 +29,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "BlueNRG1.h"
+#include "BlueNRG_x_device.h"
 
 /** @addtogroup BLUENRG1_Peripheral_Driver BLUENRG1 Peripheral Driver
   * @{
@@ -73,6 +73,22 @@ typedef enum
   * @{
   */
 
+/** @defgroup System_Clock_Frequency System Clock Frequency
+  * @{
+  */
+#if (HS_SPEED_XTAL == HS_SPEED_XTAL_32MHZ)
+  #define SYST_CLOCK 	32000000            /* System clock frequency */ 
+#elif (HS_SPEED_XTAL == HS_SPEED_XTAL_16MHZ)
+   #define SYST_CLOCK 	16000000            /* System clock frequency */ 
+#else
+#error "No definition for SYST_CLOCK"
+#endif
+
+/**
+  * @}
+  */
+
+
 /** @defgroup Peripherals_Clock Peripherals Clock
   * @{
   */
@@ -90,8 +106,9 @@ typedef enum
 #define CLOCK_PERIPH_RTC                 ((uint32_t)0x00002000)
 #define CLOCK_PERIPH_DMA                 ((uint32_t)0x00010000)
 #define CLOCK_PERIPH_RNG                 ((uint32_t)0x00020000)
+#define CLOCK_PERIPH_PKA                 ((uint32_t)0x000C0000)
 
-#define IS_CLOCK_PERIPH(PERIPH) ((PERIPH & 0x00033F9F) != 0)
+#define IS_CLOCK_PERIPH(PERIPH) (((PERIPH) & 0x000F3F9F) != 0)
 /**
   * @}
   */
@@ -111,7 +128,7 @@ typedef enum
 #define WAKEUP_ON_HIGH_STATE    ((uint8_t)0)   /* Wakeup on high state */
 #define WAKEUP_ON_LOW_STATE     ((uint8_t)1)   /* Wakeup on low state */
 
-#define IS_WAKEUP_ON_IO(IOS) ((IOS & 0x1F) != 0)
+#define IS_WAKEUP_ON_IO(IOS) (((IOS) & 0x1F) != 0)
 
 #define IS_WAKEUP_ON_STATE(STATE) ( ((STATE) == WAKEUP_ON_HIGH_STATE) || ((STATE) == WAKEUP_ON_LOW_STATE) )
 

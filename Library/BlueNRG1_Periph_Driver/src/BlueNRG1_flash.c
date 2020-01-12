@@ -2,8 +2,8 @@
 ******************************************************************************
 * @file    BlueNRG1_flash.c
 * @author  VMA Application Team
-* @version V2.0.0
-* @date    21-March-2016
+* @version V2.0.1
+* @date    21-March-2018
 * @brief   This file provides all the FLASH firmware functions.
 ******************************************************************************
 * @attention
@@ -87,6 +87,10 @@ void FLASH_ErasePage(uint16_t PageNumber)
   uint16_t pageAddress;
   
   assert_param(IS_PAGE_NUMBER(PageNumber));
+
+  /* Lock word to avoid undesired FLASH operation */
+  if (flash_sw_lock != FLASH_UNLOCK_WORD)
+    return;
   
   pageAddress = (PageNumber * N_BYTES_PAGE)>>2;
   
@@ -112,6 +116,10 @@ void FLASH_ErasePage(uint16_t PageNumber)
 */
 void FLASH_EraseAllFlash(void)
 {
+  /* Lock word to avoid undesired FLASH operation */
+  if (flash_sw_lock != FLASH_UNLOCK_WORD)
+    return;
+
   /* Clear IRQ */
   FLASH->IRQSTAT = 0x3F;
   
@@ -124,7 +132,8 @@ void FLASH_EraseAllFlash(void)
 
 /**
 * @brief  Flash read 32 bits.
-* @param  Address: address to write
+* @param  Address: address to read.
+          Address must be word aligned.
 * @retval Data read
 */
 uint32_t FLASH_ReadWord(uint32_t Address)
@@ -132,6 +141,18 @@ uint32_t FLASH_ReadWord(uint32_t Address)
   assert_param(IS_FLASH_ADDRESS(Address));
 	
   return (*((volatile uint32_t*)(Address)));
+}
+
+/**
+* @brief  Flash read 8 bits.
+* @param  Address: address to write.
+* @retval Data read
+*/
+uint8_t FLASH_ReadByte(uint32_t Address)
+{
+  assert_param(IS_FLASH_ADDRESS(Address));
+	
+  return (*((volatile uint8_t*)(Address)));
 }
 
 /**
@@ -143,7 +164,11 @@ uint32_t FLASH_ReadWord(uint32_t Address)
 void FLASH_ProgramWord(uint32_t Address, uint32_t Data)
 {
   assert_param(IS_FLASH_ADDRESS(Address));
-  
+
+  /* Lock word to avoid undesired FLASH operation */
+  if (flash_sw_lock != FLASH_UNLOCK_WORD)
+    return;
+
   /* Clear IRQ */
   FLASH->IRQSTAT = 0x3F;
   
@@ -164,15 +189,18 @@ void FLASH_ProgramWord(uint32_t Address, uint32_t Data)
 
 /**
 * @brief  Flash write 32 bits.
-* @param  WordNumber: word number
-* @param  PageNumber: page number <= 2048
-* @param	Data: word to write <= 512
+* @param  Address: address to write
+* @param  Data: pointer to an array of 4 words to write
 * @retval None
 */
 void FLASH_ProgramWordBurst(uint32_t Address, uint32_t* Data)
 {
   assert_param(IS_FLASH_ADDRESS(Address));
-  
+
+  /* Lock word to avoid undesired FLASH operation */
+  if (flash_sw_lock != FLASH_UNLOCK_WORD)
+    return;
+
   /* Clear IRQ */
   FLASH->IRQSTAT = 0x3F;
   
@@ -194,6 +222,25 @@ void FLASH_ProgramWordBurst(uint32_t Address, uint32_t* Data)
   // return ;
 }
 
+/**
+* @brief  Flash Lock
+* @param  None
+* @retval None
+*/
+void FLASH_Lock(void)
+{
+  flash_sw_lock = FLASH_LOCK_WORD;
+}
+
+/**
+* @brief  Flash Unlock
+* @param  None
+* @retval None
+*/
+void FLASH_Unlock(void)
+{
+  flash_sw_lock = FLASH_UNLOCK_WORD;
+}
 
 /**
 * @brief  Wait loop for CMDDONE status
@@ -218,16 +265,6 @@ void FLASH_ClearCmdDone(void)
   SET_BIT(FLASH->IRQSTAT, Flash_CMDDONE);
 }
 
-
-/**
-* @brief  Wait loop for CMDDONE status
-* @param  None
-* @retval uint32_t Next usable address of flash
-*/
-uint16_t FLASH_NextFreeFlashAddress(void)
-{
-  return FLASH->SIZE;
-}
 
 
 /**
@@ -335,4 +372,3 @@ void FLASH_ClearFlag(uint8_t FlashFlag)
 */
 
 /******************* (C) COPYRIGHT 2016 STMicroelectronics *****END OF FILE****/
-

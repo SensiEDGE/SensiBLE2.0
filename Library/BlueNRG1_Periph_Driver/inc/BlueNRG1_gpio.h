@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    BlueNRG1_gpio.h
   * @author  VMA Application Team
-  * @version V2.0.0
-  * @date    21-March-2016
+  * @version V2.2.0
+  * @date    31-January-2017
   * @brief   This file contains all the functions prototypes for the GPIO 
   *          firmware library.
   ******************************************************************************
@@ -29,7 +29,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "BlueNRG1.h"
+#include "BlueNRG_x_device.h"
 
 /** @addtogroup BLUENRG1_Peripheral_Driver BLUENRG1 Peripheral Driver
   * @{
@@ -49,7 +49,7 @@
   */
 typedef struct
 {
-  uint16_t GPIO_Pin;              /*!< Specifies the GPIO pins to be configured.
+  uint32_t GPIO_Pin;              /*!< Specifies the GPIO pins to be configured.
                                       This parameter can be any value of @ref GPIO_Pins_Definition */
   
   uint8_t GPIO_Mode;             /*!< Specifies the operating mode for the selected pin.
@@ -111,7 +111,7 @@ typedef enum
 #define GPIO_Input                  ((uint8_t)0)  /*!< GPIO input selected */
 #define Serial1_Mode                ((uint8_t)1)  /*!< Serial1 mode selected */
 #define Serial0_Mode                ((uint8_t)4)  /*!< Serial0 mode selected */
-#define Microphone_Mode             ((uint8_t)5)  /*!< Microphone mode selected */
+#define Serial2_Mode                ((uint8_t)5)  /*!< Serial2 mode selected */
 #define GPIO_Output                 ((uint8_t)6)  /*!< GPIO output mode selected */
 
 /* This macro checks if MODE is a valid mode value for GPIO, please refer to the DATASHEET GPIO mode table */
@@ -119,7 +119,7 @@ typedef enum
                             ((MODE) == GPIO_Output) || \
                             ((MODE) == Serial1_Mode) || \
                             ((MODE) == Serial0_Mode) || \
-                            ((MODE) == Microphone_Mode))
+                            ((MODE) == Serial2_Mode))
 
 /**
   * @}
@@ -130,25 +130,37 @@ typedef enum
 /** @defgroup GPIO_Pins_Definition GPIO Pins Definition
   * @{
   */
-#define GPIO_Pin_0                 ((uint16_t)0x0001)  /*!< Pin 0 selected */
-#define GPIO_Pin_1                 ((uint16_t)0x0002)  /*!< Pin 1 selected */
-#define GPIO_Pin_2                 ((uint16_t)0x0004)  /*!< Pin 2 selected */
-#define GPIO_Pin_3                 ((uint16_t)0x0008)  /*!< Pin 3 selected */
-#define GPIO_Pin_4                 ((uint16_t)0x0010)  /*!< Pin 4 selected */
-#define GPIO_Pin_5                 ((uint16_t)0x0020)  /*!< Pin 5 selected */
-#define GPIO_Pin_6                 ((uint16_t)0x0040)  /*!< Pin 6 selected */
-#define GPIO_Pin_7                 ((uint16_t)0x0080)  /*!< Pin 7 selected */
-#define GPIO_Pin_8                 ((uint16_t)0x0100)  /*!< Pin 8 selected */
-#define GPIO_Pin_9                 ((uint16_t)0x0200)  /*!< Pin 9 selected */
-#define GPIO_Pin_10                ((uint16_t)0x0400)  /*!< Pin 10 selected */
-#define GPIO_Pin_11                ((uint16_t)0x0800)  /*!< Pin 11 selected */
-#define GPIO_Pin_12                ((uint16_t)0x1000)  /*!< Pin 12 selected */
-#define GPIO_Pin_13                ((uint16_t)0x2000)  /*!< Pin 13 selected */
-#define GPIO_Pin_14                ((uint16_t)0x4000)  /*!< Pin 14 selected */
-#define GPIO_Pin_All               ((uint16_t)0x7FFF)  /*!< All pins selected */
+#define GPIO_Pin_0                 ((uint32_t)0x00000001)  /*!< Pin 0 selected */
+#define GPIO_Pin_1                 ((uint32_t)0x00000002)  /*!< Pin 1 selected */
+#define GPIO_Pin_2                 ((uint32_t)0x00000004)  /*!< Pin 2 selected */
+#define GPIO_Pin_3                 ((uint32_t)0x00000008)  /*!< Pin 3 selected */
+#define GPIO_Pin_4                 ((uint32_t)0x00000010)  /*!< Pin 4 selected */
+#define GPIO_Pin_5                 ((uint32_t)0x00000020)  /*!< Pin 5 selected */
+#define GPIO_Pin_6                 ((uint32_t)0x00000040)  /*!< Pin 6 selected */
+#define GPIO_Pin_7                 ((uint32_t)0x00000080)  /*!< Pin 7 selected */
+#define GPIO_Pin_8                 ((uint32_t)0x00000100)  /*!< Pin 8 selected */
+#define GPIO_Pin_9                 ((uint32_t)0x00000200)  /*!< Pin 9 selected */
+#define GPIO_Pin_10                ((uint32_t)0x00000400)  /*!< Pin 10 selected */
+#define GPIO_Pin_11                ((uint32_t)0x00000800)  /*!< Pin 11 selected */
+#define GPIO_Pin_12                ((uint32_t)0x00001000)  /*!< Pin 12 selected */
+#define GPIO_Pin_13                ((uint32_t)0x00002000)  /*!< Pin 13 selected */
+#define GPIO_Pin_14                ((uint32_t)0x00004000)  /*!< Pin 14 selected */
+
+#define GPIO_Pin_15                ((uint32_t)0x00008000)  /*!< Pin 15 selected */
+#define GPIO_Pin_16                ((uint32_t)0x00010000)  /*!< Pin 16 selected */
+#define GPIO_Pin_17                ((uint32_t)0x00020000)  /*!< Pin 17 selected */
+#define GPIO_Pin_18                ((uint32_t)0x00040000)  /*!< Pin 18 selected */
+#define GPIO_Pin_19                ((uint32_t)0x00080000)  /*!< Pin 19 selected */
+#define GPIO_Pin_20                ((uint32_t)0x00100000)  /*!< Pin 20 selected */
+#define GPIO_Pin_21                ((uint32_t)0x00200000)  /*!< Pin 21 selected */
+#define GPIO_Pin_22                ((uint32_t)0x00400000)  /*!< Pin 22 selected */
+#define GPIO_Pin_23                ((uint32_t)0x00800000)  /*!< Pin 23 selected */
+#define GPIO_Pin_24                ((uint32_t)0x01000000)  /*!< Pin 24 selected */
+#define GPIO_Pin_25                ((uint32_t)0x02000000)  /*!< Pin 25 selected */
+#define GPIO_Pin_All               ((uint32_t)0x03FFFFFF)  /*!< All pins selected */
 
 /* Number of total available GPIO pins */
-#define GPIO_PIN_COUNT               (15)
+#define GPIO_PIN_COUNT               (26)
 
 #define IS_GPIO_PIN(PIN) (((PIN) == GPIO_Pin_0) || ((PIN) == GPIO_Pin_1) || \
                             ((PIN) == GPIO_Pin_2) || ((PIN) == GPIO_Pin_3) || \
@@ -157,11 +169,16 @@ typedef enum
                             ((PIN) == GPIO_Pin_8) || ((PIN) == GPIO_Pin_9) || \
                             ((PIN) == GPIO_Pin_10) || ((PIN) == GPIO_Pin_11) || \
                             ((PIN) == GPIO_Pin_12) || ((PIN) == GPIO_Pin_13) || \
-                            ((PIN) == GPIO_Pin_14))
+                            ((PIN) == GPIO_Pin_14) || ((PIN) == GPIO_Pin_15) || \
+                            ((PIN) == GPIO_Pin_16) || ((PIN) == GPIO_Pin_17) || \
+                            ((PIN) == GPIO_Pin_18) || ((PIN) == GPIO_Pin_19) || \
+                            ((PIN) == GPIO_Pin_20) || ((PIN) == GPIO_Pin_21) || \
+                            ((PIN) == GPIO_Pin_22) || ((PIN) == GPIO_Pin_23) || \
+                            ((PIN) == GPIO_Pin_24) || ((PIN) == GPIO_Pin_25))
 
 
 /* This macro checks if PIN is a valid pin combination value */
-#define IS_GPIO_PINS(PIN) ((PIN & GPIO_Pin_All) != 0)
+#define IS_GPIO_PINS(PIN) (((PIN) & GPIO_Pin_All) != 0)
 
 
 /**
@@ -213,10 +230,10 @@ typedef enum
  */
 
 /* GPIO Input Signal */
-#define GPIO_InitInputPinx(PIN_NAME)    GPIO_Init(&(GPIO_InitType){PIN_NAME, GPIO_Input, DISABLE, DISABLE});
+#define GPIO_InitInputPinx(PIN_NAME)    GPIO_Init(&(GPIO_InitType){(PIN_NAME), GPIO_Input, DISABLE, DISABLE});
 
 /* GPIO Output Signal */
-#define GPIO_InitOutputPinx(PIN_NAME)   GPIO_Init(&(GPIO_InitType){PIN_NAME, GPIO_Output, DISABLE, DISABLE});
+#define GPIO_InitOutputPinx(PIN_NAME)   GPIO_Init(&(GPIO_InitType){(PIN_NAME), GPIO_Output, DISABLE, DISABLE});
 
 
 /* 
@@ -227,18 +244,36 @@ typedef enum
 #define GPIO_InitUartRxPin4()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_4, Serial1_Mode, DISABLE, DISABLE});
 #define GPIO_InitUartRxPin11()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_11, Serial1_Mode, DISABLE, DISABLE});
 
+#ifdef BLUENRG2_DEVICE
+#define GPIO_InitUartRxPin24()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_24, Serial1_Mode, DISABLE, DISABLE});
+#endif
+
 /* UART TX Signal */
 #define GPIO_InitUartTxPin5()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_5, Serial1_Mode, DISABLE, DISABLE});
 #define GPIO_InitUartTxPin8()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_8, Serial1_Mode, DISABLE, DISABLE});
+
+#ifdef BLUENRG2_DEVICE
+#define GPIO_InitUartTxPin23()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_23, Serial1_Mode, DISABLE, DISABLE});
+#endif
 
 /* UART CTS Signal */
 #define GPIO_InitUartCtsPin0()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_0, Serial1_Mode, DISABLE, DISABLE});
 #define GPIO_InitUartCtsPin7()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_7, Serial1_Mode, DISABLE, DISABLE});
 #define GPIO_InitUartCtsPin13()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_13, Serial1_Mode, DISABLE, DISABLE});
 
+#ifdef BLUENRG2_DEVICE
+#define GPIO_InitUartCtsPin19()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_19, Serial0_Mode, DISABLE, DISABLE});
+#define GPIO_InitUartCtsPin20()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_20, Serial1_Mode, DISABLE, DISABLE});
+#endif
+
 /* UART RTS Signal */
 #define GPIO_InitUartRtsPin1()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_1, Serial1_Mode, DISABLE, DISABLE});
 #define GPIO_InitUartRtsPin6()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_6, Serial1_Mode, DISABLE, DISABLE});
+
+#ifdef BLUENRG2_DEVICE
+#define GPIO_InitUartRtsPin18()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_18, Serial0_Mode, DISABLE, DISABLE});
+#define GPIO_InitUartRtsPin25()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_25, Serial1_Mode, DISABLE, DISABLE});
+#endif
 
 
 /* 
@@ -250,17 +285,71 @@ typedef enum
 #define GPIO_InitSpiClkPin8()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_8, Serial0_Mode, DISABLE, DISABLE});
 #define GPIO_InitSpiClkPin14()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_14, Serial0_Mode, DISABLE, DISABLE});
 
+#ifdef BLUENRG2_DEVICE
+#define GPIO_InitSpiClkPin25()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_25, Serial0_Mode, DISABLE, DISABLE});
+#endif
+
 /* SPI CS Signal */
-#define GPIO_InitSpiCsPin1()     GPIO_Init(&(GPIO_InitType){GPIO_Pin_1, Serial0_Mode, DISABLE, DISABLE});
-#define GPIO_InitSpiCsPin11()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_11, Serial0_Mode, DISABLE, DISABLE});
+#define GPIO_InitSpiCs1Pin1()     GPIO_Init(&(GPIO_InitType){GPIO_Pin_1, Serial0_Mode, DISABLE, DISABLE});
+#define GPIO_InitSpiCs1Pin11()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_11, Serial0_Mode, DISABLE, DISABLE});
 
-/* SPI MOSI Signal */
-#define GPIO_InitSpiMosiPin2()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_2, Serial0_Mode, DISABLE, DISABLE});
-#define GPIO_InitSpiMosiPin10()  GPIO_Init(&(GPIO_InitType){GPIO_Pin_10, Serial0_Mode, DISABLE, DISABLE});
+#ifdef BLUENRG2_DEVICE
+#define GPIO_InitSpiCs1Pin15()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_15, Serial0_Mode, DISABLE, DISABLE});
+#define GPIO_InitSpiCs2Pin18()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_18, Serial1_Mode, DISABLE, DISABLE});
+#define GPIO_InitSpiCs2Pin20()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_20, Serial0_Mode, DISABLE, DISABLE});
+#define GPIO_InitSpiCs3Pin19()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_19, Serial1_Mode, DISABLE, DISABLE});
+#define GPIO_InitSpiCs1Pin21()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_21, Serial0_Mode, DISABLE, DISABLE});
+#define GPIO_InitSpiCs3Pin22()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_22, Serial1_Mode, DISABLE, DISABLE});
+#endif
 
-/* SPI MISO Signal */
-#define GPIO_InitSpiMisoPin9()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_9, Serial0_Mode, DISABLE, DISABLE});
-#define GPIO_InitSpiMisoPin3()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_3, Serial0_Mode, DISABLE, DISABLE});
+
+/* SPI OUT Signal */
+#define GPIO_InitSpiOutPin2()     GPIO_Init(&(GPIO_InitType){GPIO_Pin_2, Serial0_Mode, DISABLE, DISABLE});
+#define GPIO_InitSpiOutPin10()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_10, Serial0_Mode, DISABLE, DISABLE});
+
+#ifdef BLUENRG2_DEVICE
+#define GPIO_InitSpiOutPin17()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_17, Serial0_Mode, DISABLE, DISABLE});
+#define GPIO_InitSpiOutPin23()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_23, Serial0_Mode, DISABLE, DISABLE});
+#endif
+
+
+/* SPI IN Signal */
+#define GPIO_InitSpiInPin9()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_9, Serial0_Mode, DISABLE, DISABLE});
+#define GPIO_InitSpiInPin3()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_3, Serial0_Mode, DISABLE, DISABLE});
+
+#ifdef BLUENRG2_DEVICE
+#define GPIO_InitSpiInPin16()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_16, Serial0_Mode, DISABLE, DISABLE});
+#define GPIO_InitSpiInPin24()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_24, Serial0_Mode, DISABLE, DISABLE});
+#endif
+
+
+/* 
+ * I2C1 Port Configuration
+ */
+
+/* I2C1 Clock Signal */
+#define GPIO_InitI2c1ClkPin12()  GPIO_Init(&(GPIO_InitType){GPIO_Pin_12, Serial0_Mode, DISABLE, DISABLE});
+#define GPIO_InitI2c1ClkPin14()  GPIO_Init(&(GPIO_InitType){GPIO_Pin_14, Serial1_Mode, DISABLE, DISABLE});
+
+/* I2C1 Data Signal */
+#define GPIO_InitI2c1DataPin13() GPIO_Init(&(GPIO_InitType){GPIO_Pin_13, Serial0_Mode, DISABLE, DISABLE});
+
+#ifdef BLUENRG2_DEVICE
+#define GPIO_InitI2c1DataPin15() GPIO_Init(&(GPIO_InitType){GPIO_Pin_15, Serial1_Mode, DISABLE, DISABLE});
+#endif
+
+/* 
+ * I2C2 Port Configuration
+ */
+
+/* I2C2 Clock Signal */
+#define GPIO_InitI2c2ClkPin4()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_4, Serial0_Mode, DISABLE, DISABLE});
+#define GPIO_InitI2c2ClkPin6()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_6, Serial0_Mode, DISABLE, DISABLE});
+
+/* I2C2 Data Signal */
+#define GPIO_InitI2c2DataPin5()  GPIO_Init(&(GPIO_InitType){GPIO_Pin_5, Serial0_Mode, DISABLE, DISABLE});
+#define GPIO_InitI2c2DataPin7()  GPIO_Init(&(GPIO_InitType){GPIO_Pin_7, Serial0_Mode, DISABLE, DISABLE});
+
 
 /* 
  * PWM Configuration
@@ -268,11 +357,21 @@ typedef enum
 
 /* PWM0 Signal */
 #define GPIO_InitPwm0Pin2()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_2, Serial1_Mode, DISABLE, DISABLE});
-#define GPIO_InitPwm0Pin4()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_4, Microphone_Mode, DISABLE, DISABLE});
+#define GPIO_InitPwm0Pin4()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_4, Serial2_Mode, DISABLE, DISABLE});
+
+#ifdef BLUENRG2_DEVICE
+#define GPIO_InitPwm0Pin16()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_16, Serial1_Mode, DISABLE, DISABLE});
+#define GPIO_InitPwm0Pin22()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_22, Serial1_Mode, DISABLE, DISABLE});
+#endif
 
 /* PWM1 Signal */
 #define GPIO_InitPwm1Pin3()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_3, Serial1_Mode, DISABLE, DISABLE});
-#define GPIO_InitPwm1Pin5()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_5, Microphone_Mode, DISABLE, DISABLE});
+#define GPIO_InitPwm1Pin5()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_5, Serial2_Mode, DISABLE, DISABLE});
+
+#ifdef BLUENRG2_DEVICE
+#define GPIO_InitPwm1Pin17()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_17, Serial1_Mode, DISABLE, DISABLE});
+#define GPIO_InitPwm1Pin21()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_21, Serial1_Mode, DISABLE, DISABLE});
+#endif
 
 
 /* 
@@ -280,17 +379,24 @@ typedef enum
  */
 
 /* PDM Data Signal */
-#define GPIO_InitPdmDataPin1()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_1, Microphone_Mode, DISABLE, DISABLE});
-#define GPIO_InitPdmDataPin6()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_6, Microphone_Mode, DISABLE, DISABLE});
-#define GPIO_InitPdmDataPin8()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_8, Microphone_Mode, DISABLE, DISABLE});
-#define GPIO_InitPdmDataPin14()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_14, Microphone_Mode, DISABLE, DISABLE});
+#define GPIO_InitPdmDataPin1()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_1, Serial2_Mode, DISABLE, DISABLE});
+#define GPIO_InitPdmDataPin6()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_6, Serial2_Mode, DISABLE, DISABLE});
+#define GPIO_InitPdmDataPin8()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_8, Serial2_Mode, DISABLE, DISABLE});
+
+#ifdef BLUENRG2_DEVICE
+#define GPIO_InitPdmDataPin24()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_24, Serial2_Mode, DISABLE, DISABLE});
+#endif
 
 #define GPIO_DeInitPdmDataPin6()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_6, GPIO_Input, DISABLE, DISABLE});
 
 /* PDM Clock Signal */
-#define GPIO_InitPdmClockPin2()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_2, Microphone_Mode, DISABLE, DISABLE});
-#define GPIO_InitPdmClockPin3()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_3, Microphone_Mode, DISABLE, DISABLE});
-#define GPIO_InitPdmClockPin7()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_7, Microphone_Mode, DISABLE, DISABLE});
+#define GPIO_InitPdmClockPin2()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_2, Serial2_Mode, DISABLE, DISABLE});
+#define GPIO_InitPdmClockPin7()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_7, Serial2_Mode, DISABLE, DISABLE});
+
+#ifdef BLUENRG2_DEVICE
+#define GPIO_InitPdmClockPin23()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_23, Serial2_Mode, DISABLE, DISABLE});
+#define GPIO_InitPdmClockPin25()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_25, Serial2_Mode, DISABLE, DISABLE});
+#endif
 
 #define GPIO_DeInitPdmClockPin7()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_7, GPIO_Input, DISABLE, DISABLE});
 
@@ -304,27 +410,31 @@ typedef enum
   */
 
 /* Initialization */
-void GPIO_DeInit(void);																					/*!< GPIO deinitialization. */
-void GPIO_Init(GPIO_InitType* GPIO_InitStruct);									/*!< GPIO initialization. */
-void GPIO_StructInit(GPIO_InitType* GPIO_InitStruct);						/*!< Initialization of the GPIO_InitType Structure. */
+void GPIO_DeInit(void);									/*!< GPIO deinitialization. */
+void GPIO_Init(GPIO_InitType* GPIO_InitStruct);						/*!< GPIO initialization. */
+void GPIO_StructInit(GPIO_InitType* GPIO_InitStruct);					/*!< Initialization of the GPIO_InitType Structure. */
+void GPIO_InitLowPowerModes(GPIO_InitType* GPIO_InitStruct);                            /*!< GPIO9, GPIO10, GPIO11 initialization during low power modes for BlueNRG-2. */
+void GPIO_WriteBitsLowPowerModes(uint32_t GPIO_Pins, BitAction BitVal);                 /*!< Set the output state of the GIO9, GIO10, GIO11 during low power modes. BlueNRG-2 only. */
+void GPIO_ToggleBitsLowPowerModes(uint32_t GPIO_Pins);                                  /*!< Toggle the output state of the GIO9, GIO10, GIO11 during low power modes. BlueNRG-2 only. */
 
 /* Data read */
-BitAction GPIO_ReadBit(uint16_t GPIO_Pins);												/*!< Read GPIO pin logic state. */
+BitAction GPIO_ReadBit(uint32_t GPIO_Pins);						/*!< Read GPIO pin logic state. */
 
 /* Data write */
-void GPIO_WriteBit(uint16_t GPIO_Pins, BitAction BitVal);				/*!< Write new GPIO pin logic state. */
+void GPIO_WriteBit(uint32_t GPIO_Pins, BitAction BitVal);				/*!< Write new GPIO pin logic state. */
 
 /* Bit operations */
-void GPIO_SetBits(uint16_t GPIO_Pins);														/*!< Set selected GPIO pin. */
-void GPIO_ResetBits(uint16_t GPIO_Pins);													/*!< Reset selected GPIO pin. */
-void GPIO_ToggleBits(uint16_t GPIO_Pins);													/*!< Toggle selected GPIO pin. */
+void GPIO_SetBits(uint32_t GPIO_Pins);							/*!< Set selected GPIO pin. */
+void GPIO_ResetBits(uint32_t GPIO_Pins);						/*!< Reset selected GPIO pin. */
+void GPIO_ToggleBits(uint32_t GPIO_Pins);						/*!< Toggle selected GPIO pin. */
 
 /* GPIO interrupts */
-void GPIO_EXTIStructInit(GPIO_EXTIConfigType* GPIO_EXTIInitStruct); /*!< Initialization of the GPIO_EXTIInit Structure. */
+void GPIO_EXTIStructInit(GPIO_EXTIConfigType* GPIO_EXTIInitStruct);                     /*!< Initialization of the GPIO_EXTIInit Structure. */
 void GPIO_EXTIConfig(GPIO_EXTIConfigType* EXTIConfig);					/*!< Selects the GPIO pin used as EXTI Line. */
-void GPIO_EXTICmd(uint16_t GPIO_Pins, FunctionalState NewState);	/*!< Enables or disables interrupts on specified pins. */
-void GPIO_ClearITPendingBit(uint16_t GPIO_Pins);									/*!< Clears the GPIOx interrupt pending bits. */
-FlagStatus GPIO_GetITPendingBit(uint16_t GPIO_Pin);								/*!< Checks whether the specified enabled GPIO interrupt is active. */
+void GPIO_EXTICmd(uint32_t GPIO_Pins, FunctionalState NewState);	                /*!< Enables or disables interrupts on specified pins. */
+void GPIO_ClearITPendingBit(uint32_t GPIO_Pins);					/*!< Clears the GPIOx interrupt pending bits. */
+FlagStatus GPIO_GetITPendingBit(uint32_t GPIO_Pin);					/*!< Checks whether the specified enabled GPIO interrupt is active. */
+ITStatus GPIO_GetITStatusBit(uint32_t GPIO_Pin);         /*!< Checks whether the specified GPIO interrupt is active. */
 
 
 /**

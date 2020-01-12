@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file    BlueNRG1_MFT.c
+  * @file    BlueNRG1_mft.c
   * @author  VMA Application Team
-  * @version V2.0.0
-  * @date    21-March-2016
+  * @version V2.1.0
+  * @date    16-Feb-2018
   * @brief   This file provides all the MFT firmware functions.
   ******************************************************************************
   * @attention
@@ -220,6 +220,22 @@ void MFT_PulseTrainSoftwareTrigger(MFT_Type* MFTx)
   assert_param(IS_MFT(MFTx));
   
   MFTx->TNMCTRL_b.TNPTET = SET;
+}
+
+/**
+  *@brief  Return the status of the Pulse-train event trigger in Mode 1a
+  *@param  MFTx: where x can be 1 or 2 to select the MFT peripheral @ref MFT_Type
+  *@retval If pule-train event trigger has occurred or not:
+  *        Possible values are:
+  *        RESET: No Pulse-Train Event Trigger occurred.
+  *        SET: Pulse-Train Event Trigger occurred. Pulse-train generation not yet finished.
+  */
+uint8_t MFT_PulseTrainEventTriggerStatus(MFT_Type* MFTx)
+{
+  /* Check the parameters */
+  assert_param(IS_MFT(MFTx));
+  
+  return MFTx->TNMCTRL_b.TNPTET;
 }
 
 /**

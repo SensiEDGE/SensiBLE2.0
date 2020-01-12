@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    BlueNRG1_mft.h
   * @author  VMA Application Team
-  * @version V2.0.0
-  * @date    21-March-2016
+  * @version V2.1.0
+  * @date    16-Feb-2018
   * @brief   This file contains all the functions prototypes for the MFT 
   *          firmware library.
   ******************************************************************************
@@ -29,7 +29,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "BlueNRG1.h"
+#include "BlueNRG_x_device.h"
 
 /** @addtogroup BLUENRG1_Peripheral_Driver BLUENRG1 Peripheral Driver
   * @{
@@ -57,7 +57,7 @@
   uint8_t MFT_Clock2;      /*!< Specifies the MFT clock selection, for counter B.
                                  This value can be a value of @ref MFT_Clock_Selector_Definition */
                   
-  uint8_t MFT_Prescaler;    /*!< Specifies the MFT prescaler. */
+  uint8_t MFT_Prescaler;    /*!< Specifies the MFT prescaler only for MFT_PRESCALED_CLK */
                                   
   uint16_t MFT_CRA;         /*!< Specifies the MFT CRA init value. */
 
@@ -109,10 +109,10 @@
   * @{
   */
   
-#define MFT_IT_TNA      ((uint32_t)0x1) /*!< interrupt TnAPNA */
-#define MFT_IT_TNB      ((uint32_t)0x2) /*!< interrupt TnAPNB */
-#define MFT_IT_TNC      ((uint32_t)0x4) /*!< interrupt TnAPNC */
-#define MFT_IT_TND      ((uint32_t)0x8) /*!< interrupt TnAPND */
+#define MFT_IT_TNA      ((uint32_t)0x1) /*!< interrupt TnAPND */
+#define MFT_IT_TNB      ((uint32_t)0x2) /*!< interrupt TnBPND */
+#define MFT_IT_TNC      ((uint32_t)0x4) /*!< interrupt TnCPND */
+#define MFT_IT_TND      ((uint32_t)0x8) /*!< interrupt TnDPND */
 
 #define IS_MFT_INTERRUPT(IT) ((((IT) & (~0xF)) == 0x00) && ((IT) != 0x00))
 
@@ -125,10 +125,10 @@
   */
   
 #define MFT_NO_CLK                ((uint8_t)0x00) /*!< Noclock, timer1 stopped */
-#define MFT_PRESCALED_CLK         ((uint8_t)0x01) /*!< Prescaled system clock */
+#define MFT_PRESCALED_CLK         ((uint8_t)0x01) /*!< System clock with configurable prescaler */
 #define MFT_EXTERNAL_EVENT        ((uint8_t)0x02) /*!< External event on TnB (mode 1 and 3 only) */
 #define MFT_PULSE_ACCUMULATE      ((uint8_t)0x03) /*!< Pulse accumulate (mode 1 and 3 only) */
-#define MFT_LOW_SPEED_CLK         ((uint8_t)0x04) /*!< Low speed clock */
+#define MFT_LOW_SPEED_CLK         ((uint8_t)0x04) /*!< 16 MHz clock without prescaler (only when the system clock is 32 MHz). */
 
 #define IS_MFT_CLOCK_SEL(MODE) (((MODE) == MFT_NO_CLK) || \
                                  ((MODE) == MFT_PRESCALED_CLK) || \
@@ -226,6 +226,7 @@ void MFT_StructInit(MFT_InitType* MFT_InitStruct);
 void MFT_TnEDGES(MFT_Type* MFTx, uint32_t MFT_TnA_edge, uint32_t MFT_TnB_edge);
 void MFT_PulseTrainTriggerSelect(MFT_Type* MFTx, uint32_t MFT_Trigger);
 void MFT_PulseTrainSoftwareTrigger(MFT_Type* MFTx);
+uint8_t MFT_PulseTrainEventTriggerStatus(MFT_Type* MFTx);
 void MFT_TnXEN(MFT_Type* MFTx, uint8_t TnX, FunctionalState NewState);
 void MFT_SelectCapturePin( uint32_t MFT_TimerType, uint8_t MFT_Pin);
 void MFT_SetCounter(MFT_Type* MFTx, uint16_t MFT_Cnt1, uint16_t MFT_Cnt2);

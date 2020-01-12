@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
   * @file    gp_timer.h
-  * @author  AMS - VMA RF Application team
-  * @version V1.0.0
-  * @date    21-Sept-2015
+  * @author  AMS - RF Application team
+  * @version V1.1.0
+  * @date    26-March-2018
   * @brief   Header file for general purpose timer library.
   ******************************************************************************
   * @attention
@@ -24,25 +24,20 @@
 #include "clock.h"
 
 /**
- * @brief A structure that represents a timer. Use Timer_Set() to set the timer.
+ * @brief Timer structure. Use Timer_Set() to set the timer.
  *
  */
 struct timer {
-    
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-    
   tClockTime start;
   tClockTime interval;
-  
-#endif
 };
 
 /** 
- * @brief This function sets a timer for a time sometime in the
- * future. The function timer_expired() will evaluate to true after
+ * @brief This function sets a timer for a specific time.
+ * The function Timer_Expired() returns true if 
  * the timer has expired.
  * 
- * @param[in] t         Pointer to a timer structure
+ * @param[in] t         Pointer to timer 
  * @param[in] interval  The interval before the timer expires.
  *
  * @retval None
@@ -50,46 +45,44 @@ struct timer {
 void Timer_Set(struct timer *t, tClockTime interval);
 
 /** 
- * @brief This function resets the timer with the same interval that was
- * given to the timer_set() function. The start point of the interval
- * is the exact time that the timer last expired. Therefore, this
- * function will cause the timer to be stable over time, unlike the
- * timer_restart() function.
+ * @brief This function resets the same interval that was
+ * given to the Timer_Set() function. The starting point of the interval is 
+ * the last timer value when timer expired. Using this function
+ * makes the timer being stable over time.
  * 
- * @param[in] t Pointer to a timer structure
+ * @param[in] t Pointer to timer 
  *
  * @retval None
  */
 void Timer_Reset(struct timer *t);
 
 /** 
- * @brief This function restarts a timer with the same interval that was
- * given to the timer_set() function. The timer will start at the
- * current time. A periodic timer will drift if this function is used to reset
- * it. For preioric timers, use the timer_reset() function instead.
+ * @brief This function resets the same interval that was
+ * given to the Timer_Set() function. The starting point of the interval is 
+ * the current time.  For a stable timer over time, it is recommended to use 
+ * the Timer_Reset() function. 
  * 
- * @param[in] t Pointer to a timer structure
+ * @param[in] t Pointer to timer 
  *
  * @retval None
  */
 void Timer_Restart(struct timer *t);
 
 /** 
- * @brief This function tests if a timer has expired and returns true or
- * false depending on its status.
+ * @brief This function verifies if a timer has expired. 
  * 
- * @param[in] t Pointer to a timer structure
+ * @param[in] t Pointer to timer
  *
- * @retval Non-zero if the timer has expired, zero otherwise.
+ * @retval 1 if the timer has expired, 0 if not expired.
  */
-int Timer_Expired(struct timer *t);
+uint8_t Timer_Expired(struct timer *t);
 
 /** 
- * @brief This function returns the time until the timer expires.
+ * @brief This function returns the remaining time before the timer expires.
  * 
- * @param[in] t Pointer to a timer structure
+ * @param[in] t Pointer to timer 
  *
- * @retval The time until the timer expires
+ * @retval The remaining time. 
  */
 tClockTime Timer_Remaining(struct timer *t);
 

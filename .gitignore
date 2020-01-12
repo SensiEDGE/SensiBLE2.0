@@ -1,0 +1,12 @@
+*.bak
+*.cfg
+*.dep
+*.ewt
+*.launch
+.settings
+Debug
+Exe
+List
+Obj
+Release
+settings

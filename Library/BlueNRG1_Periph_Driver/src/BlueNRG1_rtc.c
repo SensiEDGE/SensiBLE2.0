@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    BlueNRG1_rtc.c
   * @author  VMA Application Team
-  * @version V2.0.0
-  * @date    21-March-2016
+  * @version V2.1.0
+  * @date    25-July-2018
   * @brief   This file provides all the RTC firmware functions.
   ******************************************************************************
   * @attention
@@ -87,18 +87,48 @@ void RTC_Init(RTC_InitType* RTC_InitStruct)
   /* Check the parameters */
   assert_param(IS_RTC_TIMER_MODE(RTC_InitStruct->RTC_operatingMode));
   assert_param(IS_PATTERN(RTC_InitStruct->RTC_PATTERN_SIZE));
-
+  
   RTC->TCR_b.OS = RTC_InitStruct->RTC_operatingMode;
+  
+  /** Delay between two write in RTC0->TCR register has to be
+  *  at least 3 x 32k cycle + 2 CPU cycle. For that reason it
+  *  is neccessary to add the delay. 
+  */
+  for (volatile uint32_t i=0; i<600; i++) {
+    __asm("NOP");
+  }
+  
   RTC->TCR_b.SP = RTC_InitStruct->RTC_PATTERN_SIZE;
-
+  
   RTC->TLR1 = RTC_InitStruct->RTC_TLR1;
   RTC->TLR2 = RTC_InitStruct->RTC_TLR2;
   RTC->TPR1 = RTC_InitStruct->RTC_PATTERN1;
   RTC->TPR2 = RTC_InitStruct->RTC_PATTERN2;
   RTC->TPR3 = RTC_InitStruct->RTC_PATTERN3;
   RTC->TPR4 = RTC_InitStruct->RTC_PATTERN4;
-
+  
 }
+
+/**
+* @brief  Fills the RTC_InitStruct member with its default value.
+* @param  RTC_InitStruct : pointer to a @ref RTC_InitType structure which will
+*         be initialized.
+* @retval None
+*/
+void RTC_StructInit(RTC_InitType* RTC_InitStruct)
+{
+  /* Reset GPIO init structure parameters values */
+  RTC_InitStruct->RTC_operatingMode = RTC_TIMER_PERIODIC;
+  RTC_InitStruct->RTC_PATTERN_SIZE = 0;
+
+  RTC_InitStruct->RTC_TLR1 = 0;
+  RTC_InitStruct->RTC_TLR2 = 0;
+  RTC_InitStruct->RTC_PATTERN1 = 0;
+  RTC_InitStruct->RTC_PATTERN2 = 0;
+  RTC_InitStruct->RTC_PATTERN3 = 0;
+  RTC_InitStruct->RTC_PATTERN4 = 0;
+}
+
 
 /**
   * @brief  Enables or disables selected RTC peripheral.

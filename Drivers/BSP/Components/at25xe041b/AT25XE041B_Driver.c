@@ -33,6 +33,7 @@
  */
 
 #include "AT25XE041B_Driver.h"
+#include "main.h"
 
 #ifdef SENSIBLE_2_0
     #include "sensible20_spi.h"
@@ -1074,7 +1075,7 @@ static AT25XE041B_StatusTypeDef AT25XE041B_ExitLowPowerMode(void)
 static uint32_t AT25XE041B_GetTick(void)
 {
     #ifdef SENSIBLE_2_0
-        return lSystickCounter;
+        return tick_ms();
     #elif defined APOS
         return APOS_GetTick();
     #elif defined USE_SENSI_NBIOT
@@ -1093,15 +1094,18 @@ static uint32_t AT25XE041B_GetTick(void)
 static void AT25XE041B_Wait(uint32_t time)
 {
     #if defined SENSIBLE_2_0
-        uint32_t nWaitPeriod = ~lSystickCounter;
+        uint32_t nWaitPeriod = ~tick_ms();
         if(nWaitPeriod < time)
         {
-            while( lSystickCounter != 0xFFFFFFFF);
+            while( tick_ms() != 0xFFFFFFFF);
             nWaitPeriod = time - nWaitPeriod;
         }
         else
+        {
             nWaitPeriod = time + ~nWaitPeriod;
-        while(lSystickCounter != nWaitPeriod) ;
+        }
+        
+        while(tick_ms() != nWaitPeriod);
     #elif defined USE_SENSI_NBIOT
         osDelay(time);
     #elif defined APOS

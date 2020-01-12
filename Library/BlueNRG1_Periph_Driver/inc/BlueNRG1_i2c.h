@@ -2,7 +2,7 @@
   ******************************************************************************
   * @file    BlueNRG1_i2c.h
   * @author  VMA Application Team
-  * @version V2.0.0
+  * @version V2.1.0
   * @date    21-March-2016
   * @brief   This file contains all the functions prototypes for the I2C firmware 
   *          library.
@@ -29,7 +29,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "BlueNRG1.h"
+#include "BlueNRG_x_device.h"
 
 /** @addtogroup BLUENRG1_Peripheral_Driver BLUENRG1 Peripheral Driver
   * @{
@@ -300,7 +300,7 @@ typedef enum {
 
 #define I2C_DMAReq_Tx                      ((uint16_t)0x0200)
 #define I2C_DMAReq_Rx                      ((uint16_t)0x0400)
-#define IS_I2C_DMAREQ(DMAREQ)   ((DMAREQ & 0x0600) != 0)
+#define IS_I2C_DMAREQ(DMAREQ)   (((DMAREQ) & 0x0600) != 0)
 
 /**
   * @}
@@ -329,6 +329,17 @@ typedef enum {
   */
   
 
+/** @defgroup I2C_Setup_Time Setup Time
+  * @{
+  */
+
+/** This macro checks if the setup time is a valid value */
+#define IS_I2C_SETUPTIME(TIME) ((TIME) <= 0x1FF)
+
+/**
+  * @}
+  */
+    
 /**
   * @}
   */
@@ -351,6 +362,7 @@ void I2C_SetRxThreshold(I2C_Type* I2Cx, uint16_t RxThres);
 void I2C_GenerateStopCondition(I2C_Type* I2Cx);
 void I2C_SetHoldTime(I2C_Type* I2Cx, uint16_t I2C_HoldTime);
 void I2C_SetHoldTimeStartCondition(I2C_Type* I2Cx, uint16_t I2C_HoldTime);
+void I2C_SetSetupTimeStartCondition(I2C_Type* I2Cx, uint16_t I2C_SetupTime);
 I2C_OpStatus I2C_WaitFlushRx(I2C_Type* I2Cx);
 I2C_OpStatus I2C_WaitFlushTx(I2C_Type* I2Cx);
 

@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    BlueNRG1_WDG.c
   * @author  VMA Application Team
-  * @version V2.0.0
-  * @date    21-March-2016
+  * @version V2.1.0
+  * @date    27-March-2018
   * @brief   This file provides all the WDG firmware functions.
   ******************************************************************************
   * @attention
@@ -141,6 +141,17 @@ void WDG_Enable(void)
   WDG->CR_b.INTEN = SET;
   WDG->CR_b.RESEN = SET;
 }
+
+/**
+  * @brief  Disable WDG reset.
+  * @param  None
+  * @retval None
+  */
+void WDG_DisableReset(void)
+{
+  WDG->CR_b.RESEN = RESET;
+}
+
 
 /**
   * @brief  Gets the WDG counter value.

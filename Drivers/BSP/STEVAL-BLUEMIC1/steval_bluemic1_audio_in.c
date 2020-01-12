@@ -40,6 +40,8 @@
 #include "steval_bluemic1_audio_in.h"
 #include "sensible20_port_exp.h"
 
+#include "BlueNRG1_adc.h"
+
 /** @addtogroup BSP BSP
  * @{
  */
@@ -150,11 +152,11 @@ void BSP_AUDIO_IN_Init(uint32_t AudioFreq)
 
   if(AudioFreq == 16000) 
   {
-    xADC_InitType.ADC_DecimationRate = ADC_DecimationRate_100;
+    xADC_InitType.ADC_OSR = ADC_OSR_100;
   }
   else if(AudioFreq == 8000)  
   {
-    xADC_InitType.ADC_DecimationRate = ADC_DecimationRate_200;
+    xADC_InitType.ADC_OSR = ADC_OSR_200;
   }
   
   xADC_InitType.ADC_Input = ADC_Input_Microphone;
@@ -171,7 +173,7 @@ void BSP_AUDIO_IN_Init(uint32_t AudioFreq)
   ADC_Init(&xADC_InitType);
   
   /* Enable ADC round converted data */  
-  ADC_RoundConvertedData(ENABLE);
+//  ADC_RoundConvertedData(ENABLE);
   
   BLUEMIC1_AudioIn_Handler.Sampling_Freq = AudioFreq;
   
@@ -220,7 +222,7 @@ void BSP_Audio_IN_DeInit(void)
   */
 void BSP_AUDIO_IN_Record(int16_t* pbuf, uint32_t buf_size) 
 {
-  ADC_RoundConvertedData(ENABLE);
+//  ADC_RoundConvertedData(ENABLE);
     
   /* DMA configuration */ 
   DMA_InitType DMA_InitStructure;
@@ -230,7 +232,7 @@ void BSP_AUDIO_IN_Record(int16_t* pbuf, uint32_t buf_size)
   SysCtrl_PeripheralClockCmd(CLOCK_PERIPH_DMA, ENABLE);
     
   /* Configure DMA TX channel */
-  DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&(ADC->DATA_CONV);
+  DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&(ADC->DATA_CONV_MSB);
   DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)pbuf;  
   DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
   DMA_InitStructure.DMA_BufferSize = (uint32_t)(buf_size);  

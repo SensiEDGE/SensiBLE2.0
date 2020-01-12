@@ -20,7 +20,7 @@
 */ 
 /* Includes ------------------------------------------------------------------*/
 #include <string.h>
-#include <osal.h>
+#include "osal.h"
  
 /**
  * Osal_MemCpy

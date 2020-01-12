@@ -1,10 +1,18 @@
 /**
   ******************************************************************************
   * @file    ble_status.h
-  * @author  AMS - VMA RF Application team
-  * @version V1.0.0
-  * @date    21-Sept-2015
-  * @brief   Header file for BLE Stack status codes.
+  * @author  AMS - RF Application team
+  * @version V2.0.0
+  * @date    16-April-2018
+  * @brief   Header file which contains definition of Bluetooth status and error codes.
+  * @note    Error Codes are defined according to Bluetooth Specifications 
+  *              Vol.2 Part D.
+  *           - HCI/Controller standard codes range is [0x00 : 0x3F].
+  *             Their name is prefixed by "BLE_ERROR_" 
+  *           - Host specific (and proprietary) error codes range is [0x40 : 0xFF].
+  *             Their name is prefixed by "BLE_STATUS_" and they're grouped by Layer
+  *           - BLE_STATUS_SUCCESS value is 0x00 and is the unique error code
+  *             used by both Controller and Host layers.
   ******************************************************************************
   * @attention
   *
@@ -15,111 +23,311 @@
   * FROM THE CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE
   * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
   *
-  * <h2><center>&copy; COPYRIGHT 2015 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2018 STMicroelectronics</center></h2>
   ******************************************************************************
   */
 #ifndef __BLE_STATUS_H__
 #define __BLE_STATUS_H__
 
-#include <hal_types.h>
+#include <bluenrg1_api.h> 
 
-
-/* Error Codes as specified by the specification 
- * according to the spec the error codes range
- * from 0x00 to 0x3F 
+/* @brief Standard Error Codes as specified by the Bluetooth Specifications
+ * Vol.2, Part D ("Error Codes").
+ * According to the spec the error codes range is from 0x00 to 0x3F.
  */
-#define ERR_CMD_SUCCESS         	            (0x00)
-#define BLE_STATUS_SUCCESS            		    (0x00)
-#define ERR_UNKNOWN_HCI_COMMAND	                    (0x01)
-#define ERR_UNKNOWN_CONN_IDENTIFIER	            (0x02)
-#define ERR_AUTH_FAILURE                            (0x05)
-#define ERR_PIN_OR_KEY_MISSING                      (0x06)
-#define ERR_MEM_CAPACITY_EXCEEDED                   (0x07)
-#define ERR_CONNECTION_TIMEOUT                      (0x08)
-#define ERR_COMMAND_DISALLOWED			    (0x0C)
-#define ERR_UNSUPPORTED_FEATURE			    (0x11)
-#define ERR_INVALID_HCI_CMD_PARAMS                  (0x12)
-#define ERR_RMT_USR_TERM_CONN                       (0x13)
-#define ERR_RMT_DEV_TERM_CONN_LOW_RESRCES           (0x14)
-#define ERR_RMT_DEV_TERM_CONN_POWER_OFF             (0x15)
-#define ERR_LOCAL_HOST_TERM_CONN                    (0x16)
-#define ERR_UNSUPP_RMT_FEATURE                      (0x1A)
-#define ERR_INVALID_LMP_PARAM                       (0x1E)
-#define ERR_UNSPECIFIED_ERROR                       (0x1F)
-#define ERR_LL_RESP_TIMEOUT                         (0x22)
-#define ERR_LMP_PDU_NOT_ALLOWED                     (0x24)
-#define ERR_INSTANT_PASSED                          (0x28)
-#define ERR_PAIR_UNIT_KEY_NOT_SUPP                  (0x29)
-#define ERR_CONTROLLER_BUSY                         (0x3A)
-#define ERR_DIRECTED_ADV_TIMEOUT                    (0x3C)
-#define ERR_CONN_END_WITH_MIC_FAILURE               (0x3D)
-#define ERR_CONN_FAILED_TO_ESTABLISH                (0x3E)
-#define BLE_STATUS_FAILED             		    (0x41)
-#define BLE_STATUS_INVALID_PARAMS     		    (0x42)
-#define BLE_STATUS_BUSY               		    (0x43)
-#define BLE_STATUS_INVALID_LEN_PDU    		    (0x44)
-#define BLE_STATUS_PENDING            		    (0x45)
-#define BLE_STATUS_NOT_ALLOWED        		    (0x46)
-#define BLE_STATUS_ERROR              		    (0x47)
-#define BLE_STATUS_ADDR_NOT_RESOLVED                (0x48)
-#define FLASH_READ_FAILED 			    (0x49)
-#define FLASH_WRITE_FAILED 			    (0x4A)
-#define FLASH_ERASE_FAILED 			    (0x4B)
-#define BLE_STATUS_INVALID_CID         		    (0x50)
-#define TIMER_NOT_VALID_LAYER			    (0x54)
-#define TIMER_INSUFFICIENT_RESOURCES		    (0x55)
-#define BLE_STATUS_CSRK_NOT_FOUND		    (0x5A)
-#define BLE_STATUS_IRK_NOT_FOUND		    (0x5B)
-#define BLE_STATUS_DEV_NOT_FOUND_IN_DB		    (0x5C)
-#define BLE_STATUS_SEC_DB_FULL			    (0x5D)
-#define BLE_STATUS_DEV_NOT_BONDED                   (0x5E)
-#define BLE_STATUS_DEV_IN_BLACKLIST                 (0x5F)
-#define BLE_STATUS_INVALID_HANDLE                   (0x60)
-#define BLE_STATUS_INVALID_PARAMETER                (0x61)
-#define BLE_STATUS_OUT_OF_HANDLE                    (0x62)
-#define BLE_STATUS_INVALID_OPERATION                (0x63)
-#define BLE_STATUS_INSUFFICIENT_RESOURCES           (0x64)
-#define BLE_INSUFFICIENT_ENC_KEYSIZE		    (0x65)
-#define BLE_STATUS_CHARAC_ALREADY_EXISTS            (0x66)
+#define BLE_STATUS_SUCCESS                          ((tBleStatus)(0x00))
+
+#define BLE_ERROR_UNKNOWN_HCI_COMMAND               ((tBleStatus)(0x01))
+#define BLE_ERROR_UNKNOWN_CONNECTION_ID             ((tBleStatus)(0x02))
+
+#define BLE_ERROR_HARDWARE_FAILURE                  ((tBleStatus)(0x03)) 
+
+#define BLE_ERROR_AUTHENTICATION_FAILURE            ((tBleStatus)(0x05))
+#define BLE_ERROR_KEY_MISSING                       ((tBleStatus)(0x06))
+#define BLE_ERROR_MEMORY_CAPACITY_EXCEEDED          ((tBleStatus)(0x07))
+#define BLE_ERROR_CONNECTION_TIMEOUT                ((tBleStatus)(0x08))
+
+#define BLE_ERROR_COMMAND_DISALLOWED                ((tBleStatus)(0x0C))
+
+#define BLE_ERROR_UNSUPPORTED_FEATURE               ((tBleStatus)(0x11))
+
+#define BLE_ERROR_INVALID_HCI_CMD_PARAMS            ((tBleStatus)(0x12))
+
+#define BLE_ERROR_TERMINATED_REMOTE_USER            ((tBleStatus)(0x13))
+
+#define BLE_ERROR_TERMINATED_LOCAL_HOST             ((tBleStatus)(0x16))
+
+#define BLE_ERROR_UNSUPP_RMT_FEATURE                ((tBleStatus)(0x1A))
+
+#define BLE_ERROR_UNSPECIFIED                       ((tBleStatus)(0x1F))
+
+#define BLE_ERROR_PROCEDURE_TIMEOUT                 ((tBleStatus)(0x22))
+
+#define BLE_ERROR_INSTANT_PASSED                    ((tBleStatus)(0x28))
+
+#define BLE_ERROR_PARAMETER_OUT_OF_RANGE            ((tBleStatus)(0x30))
+
+#define BLE_ERROR_HOST_BUSY_PAIRING                 ((tBleStatus)(0x38))
+
+#define BLE_ERROR_CONTROLLER_BUSY                   ((tBleStatus)(0x3A))
+
+#define BLE_ERROR_DIRECTED_ADVERTISING_TIMEOUT      ((tBleStatus)(0x3C))
+
+#define BLE_ERROR_CONNECTION_END_WITH_MIC_FAILURE   ((tBleStatus)(0x3D))
+#define BLE_ERROR_CONNECTION_FAILED_TO_ESTABLISH    ((tBleStatus)(0x3E))
 
 
 /**
- * Returned when no valid slots are available (e.g. when there are no available state machines).
- */
-#define BLE_STATUS_NO_VALID_SLOT                    (0x82)
+* @name Generic/System error codes
+* @brief The error codes as reported by the different Protocol layers.
+*        They start with 0x40
+* @{
+*/
+
 /**
- * Returned when a scan window shorter than minimum allowed value has been requested (i.e. 2ms)
+ * @brief The Connection Identifier does not exist.
+ * Temporary remapped to corresponding Controller Error.
  */
-#define BLE_STATUS_SCAN_WINDOW_SHORT                (0x83)
+#define BLE_STATUS_UNKNOWN_CONNECTION_ID    ((tBleStatus)(0x40))
+
 /**
- * Returned when the maximum requested interval to be allocated is shorter then the current
+ * @brief The Host failed while performing the requested operation.
+ */
+#define BLE_STATUS_FAILED                   ((tBleStatus)(0x41))
+
+/*! @enum tBleStatus::BLE_STATUS_INVALID_PARAMS
+ * 
+ */
+#define BLE_STATUS_INVALID_PARAMS           ((tBleStatus)(0x42))
+
+/**
+ * @brief The Host is already processing another request received in advance.
+ */
+#define BLE_STATUS_BUSY                     ((tBleStatus)(0x43))
+
+/*
+ * Currently not used, because this error is always signalled with an explicit
+ * Error Response message seny by the relative layer.
+ */
+//#define BLE_STATUS_INVALID_LEN_PDU          ((tBleStatus)(0x44))
+
+/**
+ * @brief The operation requested cannot be completed immediately by the Host
+ * (usually because of lack of resources). 
+ * The operation is generally put on hold by the caller and it's usually 
+ * retried on later time.
+ */
+#define BLE_STATUS_PENDING                  ((tBleStatus)(0x45))
+
+/**
+ * @brief The requested operation cannot be performed by the Host in the current status.
+ */
+#define BLE_STATUS_NOT_ALLOWED              ((tBleStatus)(0x46))
+
+/**
+ * @brief The requested operation violates the logic of the called layer/function or
+ * the format of the data to be processed during the operation.
+ */
+#define BLE_STATUS_ERROR                    ((tBleStatus)(0x47))
+
+/**
+ * @brief The requested operation failed because of lack of memory.
+ * Out of memory shall be returned for situations where memory will never 
+ * become available again (e.g. ATT database)
+ */
+#define BLE_STATUS_OUT_OF_MEMORY            ((tBleStatus)(0x48))
+
+/**
+*@}
+*/
+
+
+/**
+ * @name L2CAP error codes
+ * @{
+ */
+
+/**
+ * @brief An invalid L2CAP CID/channel has been selected to send data over.
+ */
+#define BLE_STATUS_INVALID_CID              ((tBleStatus)(0x50))
+
+/**
+*@}
+*/
+
+
+/**
+* @name  Security Manager error codes
+* @brief Error codes returned by the Security Manager Protocol (SMP)
+* @{
+*/
+
+/**
+ * @brief The remote device in in the Blacklist and the pairing operation it requested
+ * cannot be performed.
+ */
+#define BLE_STATUS_DEV_IN_BLACKLIST         ((tBleStatus)(0x59))
+
+/**
+ * @brief CSRK not found during validation of an incoming signed packet
+ */
+#define BLE_STATUS_CSRK_NOT_FOUND           ((tBleStatus)(0x5A))
+
+/** 
+ * @brief Currently not used!
+ */
+#define BLE_STATUS_IRK_NOT_FOUND            ((tBleStatus)(0x5B))
+
+/**
+ * @brief A search for a specific remote device was unsuccessfull because no entry exists
+ * either into Security/GATT Database (flash-based) or in volatile database. 
+ */
+#define BLE_STATUS_DEV_NOT_FOUND            ((tBleStatus)(0x5C))
+
+/**
+ * @brief The security database is full and no more records can be added.
+ */
+#define BLE_STATUS_SEC_DB_FULL              ((tBleStatus)(0x5D))
+
+/**
+ * @brief The remote device is not bonded, and no operations related to bonded devices
+ * may be performed (e.g. writing Gatt Client data).
+ */
+#define BLE_STATUS_DEV_NOT_BONDED           ((tBleStatus)(0x5E))
+
+/**
+ * @brief The encryption key size used for encrypting the link is insufficient\n
+ */
+#define BLE_INSUFFICIENT_ENC_KEYSIZE        ((tBleStatus)(0x5F))
+
+/**
+*@}
+*/
+
+
+/**
+* @name Gatt layer Error Codes
+* @brief Error codes returned by the Gatt layer
+* @{
+*/
+#define BLE_STATUS_INVALID_HANDLE           ((tBleStatus)(0x60))
+
+/** 
+ * @brief There aren't sufficient Attributes handles available for allocation during
+ * creation of Services, Characteristics or Descriptors.
+ */
+#define BLE_STATUS_OUT_OF_HANDLE            ((tBleStatus)(0x61))
+
+/** 
+ * @brief The requested GATT operation is not allowed in this context/status or using 
+ * the provided parameters. 
+ * This is a specific GATT error, different from generic Not Allowed error, 
+ * because it refers to specific GATT specifications/rules.
+ */
+#define BLE_STATUS_INVALID_OPERATION        ((tBleStatus)(0x62))
+
+/** 
+ * @brief The characteristic has already been added to the database.
+ */
+#define BLE_STATUS_CHARAC_ALREADY_EXISTS    ((tBleStatus)(0x63))
+
+/** 
+ * @brief The requested operation failed for a temporary lack of resources
+ * (e.g. packet pool or timers), but it may be retried later when resources may
+ * become available (packets or timers may have been released by other consumers).
+ */
+#define BLE_STATUS_INSUFFICIENT_RESOURCES   ((tBleStatus)(0x64))
+
+/** 
+ * @brief Notification/Indication can't be sent to the requested remote device because
+ * it doesn't satisfy the needed security permission.
+ */ 
+#define BLE_STATUS_SEC_PERMISSION_ERROR     ((tBleStatus)(0x65))
+
+/**
+*@}
+*/
+
+
+/**
+* @name GAP layer Error Codes
+* @brief Error codes returned externally by the GAP layer
+* @{
+*/
+
+/** 
+ *  @brief The address of the device could not be resolved using the IRK stored\n
+ */
+#define BLE_STATUS_ADDRESS_NOT_RESOLVED     ((tBleStatus)(0x70))
+
+/**
+*@}
+*/
+
+
+/**
+* @name Link Layer error Codes
+* @brief Error codes returned by the Link layer during advertising/conection.
+* @{
+*/
+
+/** 
+ * @brief Returned when no valid slots are available (e.g. when there are no available state machines).
+ */
+#define BLE_STATUS_NO_VALID_SLOT            ((tBleStatus)(0x82))
+
+/** 
+ * @brief Returned when a scan window shorter than minimum allowed value has been requested (i.e. 2ms)
+ */
+#define BLE_STATUS_SCAN_WINDOW_SHORT        ((tBleStatus)(0x83))
+
+/** 
+ * @brief Returned when the maximum requested interval to be allocated is shorter then the current
  * anchor period and a there is no submultiple for the current anchor period that is between
  * the minimum and the maximum requested intervals.
  */
-#define BLE_STATUS_NEW_INTERVAL_FAILED              (0x84)
-/**
- * Returned when the maximum requested interval to be allocated is greater than the current anchor
- * period and there is no multiple of the anchor period that is between the minimum and the maximum
+#define BLE_STATUS_NEW_INTERVAL_FAILED      ((tBleStatus)(0x84))
+
+/** 
+ * @brief Returned when the maximum requested interval to be allocated is greater than the current anchor
+ * period, and there is no multiple of the anchor period that is between the minimum and the maximum
  * requested intervals.
  */
-#define BLE_STATUS_INTERVAL_TOO_LARGE               (0x85)
-/**
- * Returned when the current anchor period or a new one can be found that is compatible to the
- * interval range requested by the new slot but the maximum available length that can be allocated is
+#define BLE_STATUS_INTERVAL_TOO_LARGE       ((tBleStatus)(0x85))
+
+/** 
+ * @brief Returned when the current anchor period or a new one can be found that is compatible to the
+ * interval range requested by the new slot, but the maximum available length that can be allocated is
  * less than the minimum requested slot length.
  */
-#define BLE_STATUS_LENGTH_FAILED                    (0x86)
+#define BLE_STATUS_LENGTH_FAILED            ((tBleStatus)(0x86))
 
- /*
-  * Library Error Codes
-  */
+/**
+*@}
+*/
+
+/**
+* @name flash error codes
+* @brief Flash sector read write error codes, which used to start with 0x49
+*        and are currently remapped from 0xFA to 0xFC
+* @{
+*/
+#define FLASH_READ_FAILED                   ((tBleStatus)(0xFA))
+#define FLASH_WRITE_FAILED                  ((tBleStatus)(0xFB))
+#define FLASH_ERASE_FAILED                  ((tBleStatus)(0xFC))
+
+/**
+ * @name Profiles Library Error Codes
+ * @{
+ */
 #define BLE_STATUS_TIMEOUT                          (0xFF)
 #define BLE_STATUS_PROFILE_ALREADY_INITIALIZED      (0xF0)
 #define BLE_STATUS_NULL_PARAM                       (0xF1) 
 
 /**
- * @}
- */
- 
+*@}
+*/
+     
 
-#endif /* __BLE_STATUS_H__ */
+#endif

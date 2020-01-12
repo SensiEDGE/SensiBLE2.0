@@ -412,10 +412,14 @@ static SensibleResult_t calibrate(void)
         calibData.HI_Offset.AXIS_Z = (int32_t)(dataOut.HI_Bias[2] * FROM_UT_TO_MGAUSS);
         
         //Switch off the warning [Pa039]: use of address of unaligned structure member
+#if defined(__ICCARM__) 
         #pragma diag_suppress=Pa039
+#endif
         //copy calibration matrix
         memcpy(&calibData.SI_Coeff, &dataOut.SI_Matrix, sizeof(calibData.SI_Coeff));
+#if defined(__ICCARM__) 
         #pragma diag_default=Pa039
+#endif
         
         /* Disable magnetometer calibration */
         MotionMC_CM0P_Initialize(COMPASS_CALIBRATION_PERIOD_MS,

@@ -219,7 +219,7 @@ void BSP_PB_ClearITPendingBit(Button_TypeDef Button)
  */
 void BSP_LED_Init(Led_TypeDef Led)
 {
-#ifdef SENSIBLE_2_0
+#if defined(SENSIBLE_2_0)
     if(Led == LED1) {
       SENSI_LedInit(SENSI_Led0);
     } else {

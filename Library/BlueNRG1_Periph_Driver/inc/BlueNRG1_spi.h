@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    BlueNRG1_spi.h
   * @author  AMS VMA RF application team
-  * @version V2.0.0
-  * @date    21-March-2016
+  * @version V2.1.0
+  * @date    31-January-2017
   * @brief   This file contains all the functions prototypes for the SPI firmware 
   *          library.
   ******************************************************************************
@@ -29,7 +29,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "BlueNRG1.h"
+#include "BlueNRG_x_device.h"
 
 /** @addtogroup BLUENRG1_Peripheral_Driver BLUENRG1 Peripheral Driver
   * @{
@@ -81,7 +81,7 @@ typedef struct {
   */
 
 /* This macro checks if SPI baud rate is a valid value */
-#define IS_SPI_BAUDRATE(BAUDRATE)   ((BAUDRATE>=10000) && (BAUDRATE<=8000000))
+#define IS_SPI_BAUDRATE(BAUDRATE)   (((BAUDRATE)>=10000) && ((BAUDRATE)<=8000000))
 
 /**
 * @}
@@ -105,6 +105,20 @@ typedef struct {
   * @}
   */
 
+/** @defgroup SPI_Mode_Definition Mode Definition
+  * @{
+  */
+
+#define SPI_FrmFrmt_Motorola             ((uint8_t)0x0)  /*!< Motorola SPI frame format */
+#define SPI_FrmFrmt_Microwire            ((uint8_t)0x2)  /*!< MicroWire frame format */
+
+/* This macro checks if frame format value is valid */
+#define IS_SPI_FRMFRMT(FRMT) (((FRMT) == SPI_FrmFrmt_Motorola) || \
+                          ((FRMT) == SPI_FrmFrmt_Microwire))
+
+/**
+  * @}
+  */
 
 /** @defgroup SPI_Mode_Definition Mode Definition
   * @{
@@ -156,7 +170,7 @@ typedef struct {
 #define SPI_DataSize_4b                 ((uint8_t)0x03)  /*!< 4-bit data size */
 
 /* This macro checks if DATASIZE is a valid SPI data size value */
-#define IS_SPI_DATASIZE(DATASIZE) ((DATASIZE > 2) && (DATASIZE < 0x20))
+#define IS_SPI_DATASIZE(DATASIZE) ((DATASIZE) < 0x20)
 
 /**
   * @}
@@ -205,7 +219,7 @@ typedef struct {
 #define SPI_IT_MSK          ((uint8_t)0x3F)  /*!< Interrupt mask */
 
 /* This macro checks if IT is a valid combination of interrupt */
-#define IS_SPI_CONFIG_IT(IT) (((IT & ~SPI_IT_MSK) == 0x00) && ((IT) != 0x00))
+#define IS_SPI_CONFIG_IT(IT) ((((IT) & ~SPI_IT_MSK) == 0x00) && ((IT) != 0x00))
 
 
 /* This macro checks if IT is a valid clearable interrupt */
@@ -247,7 +261,7 @@ typedef struct {
 #define SPI_DMAReq_Rx         ((uint8_t)0x01)  /*!< DMA RX request */
 
 /* This macro checks if DMAREQ is a valid DMA request */
-#define IS_SPI_DMAREQ(DMAREQ) ((DMAREQ==SPI_DMAReq_Tx) || (DMAREQ==SPI_DMAReq_Rx) || (DMAREQ==(SPI_DMAReq_Rx | SPI_DMAReq_Tx)))
+#define IS_SPI_DMAREQ(DMAREQ) (((DMAREQ)==SPI_DMAReq_Tx) || ((DMAREQ)==SPI_DMAReq_Rx) || ((DMAREQ)==(SPI_DMAReq_Rx | SPI_DMAReq_Tx)))
 
 /**
   * @}
@@ -324,6 +338,8 @@ void SPI_Init(SPI_InitType* SPI_InitStruct);
 void SPI_Cmd(FunctionalState NewState);
 void SPI_ITConfig(uint8_t SPI_IT, FunctionalState NewState);
 void SPI_DataSizeConfig(uint16_t SPI_DataSize);
+void SPI_CommandSizeConfig(uint16_t SPI_DataSize);
+void SPI_FrameFormatConfig(uint8_t SPI_FrameFormat);
 
 /* SPI data register access */
 void SPI_SendData(uint32_t Data);
@@ -343,6 +359,7 @@ void SPI_SetMasterCommunicationMode(uint32_t Mode);
 void SPI_SetDummyCharacter(uint32_t NullCharacter);
 void SPI_SetNumFramesToReceive(uint16_t Number);
 void SPI_SetNumFramesToTransmit(uint16_t Number);
+void SPI_EnableWaitState(FunctionalState NewState);
 void SPI_SlaveSwSelection(FunctionalState NewState);
 void SPI_EndianFormatReception(uint8_t Endian);
 void SPI_EndianFormatTransmission(uint8_t Endian);

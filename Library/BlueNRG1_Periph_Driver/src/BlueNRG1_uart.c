@@ -2,7 +2,7 @@
   ******************************************************************************
   * @file    BlueNRG1_uart.c
   * @author  VMA Application Team
-  * @version V2.0.0
+  * @version V2.1.0
   * @date    21-March-2016
   * @brief   This file provides all the UART firmware functions.
   ******************************************************************************
@@ -42,6 +42,13 @@
   * @{
   */
 #define UART_CLOCK       (16000000)
+
+/* UART clock cycle for oversampling factor */
+#define UART_CLOCK_CYCLE16        (16)      
+#define UART_CLOCK_CYCLE8         (8)
+
+/* Max UART RX timeout value */
+#define UART_MAX_RX_TIMEOUT       (0x3FFFFF)
 
 /**
   * @}
@@ -148,7 +155,10 @@ void UART_Init(UART_InitType* UART_InitStruct)
   
   /*---------------------------- UART BaudRate Configuration -----------------------*/
   
-  divider = (UART_CLOCK<<7) / (16 * UART_InitStruct->UART_BaudRate);
+  if (UART->CR_b.OVSFACT == 0)
+    divider = (UART_CLOCK<<7) / (UART_CLOCK_CYCLE16 * UART_InitStruct->UART_BaudRate);
+  else
+    divider = (UART_CLOCK<<7) / (UART_CLOCK_CYCLE8 * UART_InitStruct->UART_BaudRate);
   
   ibrd = divider >> 7;
   UART->IBRD = ibrd;
@@ -427,11 +437,13 @@ void UART_ClearITPendingBit(uint16_t UART_IT)
   * @brief  Sets the UART interrupt FIFO level.
   * @param  UART_TxFifo_Level: specifies the transmit interrupt FIFO level.
   *   This parameter can be one of the following values:
-  *   @arg FIFO_TX_LEV_1_8: interrupt when Tx FIFO becomes <= 1/8 full 
-  *   @arg FIFO_TX_LEV_1_4: interrupt when Tx FIFO becomes <= 1/4 full 
-  *   @arg FIFO_TX_LEV_1_2: interrupt when Tx FIFO becomes <= 1/2 full 
-  *   @arg FIFO_TX_LEV_3_4: interrupt when Tx FIFO becomes <= 3/4 full 
-  *   @arg FIFO_TX_LEV_7_8: interrupt when Tx FIFO becomes <= 7/8 full 
+  *   @arg FIFO_LEV_1_64: interrupt when Tx FIFO becomes <= 1/64 full = 1
+  *   @arg FIFO_LEV_1_32: interrupt when Tx FIFO becomes <= 1/32 full = 2
+  *   @arg FIFO_LEV_1_16: interrupt when Tx FIFO becomes <= 1/16 full = 4
+  *   @arg FIFO_LEV_1_8: interrupt when Tx FIFO becomes <= 1/8 full = 8
+  *   @arg FIFO_LEV_1_4: interrupt when Tx FIFO becomes <= 1/4 full = 16
+  *   @arg FIFO_LEV_1_2: interrupt when Tx FIFO becomes <= 1/2 full = 32
+  *   @arg FIFO_LEV_3_4: interrupt when Tx FIFO becomes <= 3/4 full  = 48
   * @retval None
   */
 void UART_TxFifoIrqLevelConfig(uint8_t UART_TxFifo_Level)
@@ -446,11 +458,13 @@ void UART_TxFifoIrqLevelConfig(uint8_t UART_TxFifo_Level)
   * @brief  Sets the UART interrupt FIFO level.
   * @param  UART_RxFifo_Level: specifies the receive interrupt FIFO level.
   *   This parameter can be one of the following values:
-  *   @arg FIFO_RX_LEV_1_8: interrupt when Rx FIFO becomes >= 1/8 full 
-  *   @arg FIFO_RX_LEV_1_4: interrupt when Rx FIFO becomes >= 1/4 full 
-  *   @arg FIFO_RX_LEV_1_2: interrupt when Rx FIFO becomes >= 1/2 full 
-  *   @arg FIFO_RX_LEV_3_4: interrupt when Rx FIFO becomes >= 3/4 full 
-  *   @arg FIFO_RX_LEV_7_8: interrupt when Rx FIFO becomes >= 7/8 full 
+  *   @arg FIFO_LEV_1_64: interrupt when Rx FIFO becomes >= 1/64 full = 1
+  *   @arg FIFO_LEV_1_32: interrupt when Rx FIFO becomes >= 1/32 full = 2
+  *   @arg FIFO_LEV_1_16: interrupt when Rx FIFO becomes >= 1/16 full = 4
+  *   @arg FIFO_LEV_1_8: interrupt when Rx FIFO becomes >= 1/8 full = 8
+  *   @arg FIFO_LEV_1_4: interrupt when Rx FIFO becomes >= 1/4 full = 16
+  *   @arg FIFO_LEV_1_2: interrupt when Rx FIFO becomes >= 1/2 full = 32
+  *   @arg FIFO_LEV_3_4: interrupt when Rx FIFO becomes >= 3/4 full = 48
   * @retval None
   */
 void UART_RxFifoIrqLevelConfig(uint8_t UART_RxFifo_Level)
@@ -462,25 +476,54 @@ void UART_RxFifoIrqLevelConfig(uint8_t UART_RxFifo_Level)
 }
 
 /**
-  * @brief  UART timeout value for the interrupt.
-  *         The receive timeout interrupt is asserted when
+  * @brief  UART RX timeout.
+  *         The RX timeout interrupt is asserted when
   *         the RX FIFO is not empty and no further data is received
   *         over a programmed timeout period.
-  * @param  UART_Timeout: is a value less than 0x400000.
-  *         The value is calculated as:
-  *         timeout = UART_Timeout * Baudrate_Divisor * 62.5ns 
+  * @param  UART_TimeoutMS: is the timeout in milliseconds.
   * @retval None
   */
-void UART_TimeoutConfig(uint32_t UART_Timeout)
+void UART_RXTimeoutConfig(uint32_t UART_TimeoutMS)
 {
-  /* Check the parameters */
-  assert_param(IS_UART_TIMEOUT(UART_Timeout)); 
-    
+  uint32_t timeout_val;
+  uint32_t tmp32;
+
+  tmp32 = (UART->IBRD)<<4;
+  if (UART->CR_b.OVSFACT == 0)
+    timeout_val = (UART_TimeoutMS * 16 * 16000) / (((UART->FBRD)>>2) + tmp32);
+  else
+    timeout_val = (UART_TimeoutMS *  8 * 16000) / (((UART->FBRD)>>3) + tmp32);
+
   /* Set the timeout value */
-  UART->TIMEOUT = UART_Timeout;
+  if(IS_UART_TIMEOUT(timeout_val)) {
+    UART->TIMEOUT = timeout_val;
+  }
+  else {
+    UART->TIMEOUT = UART_MAX_RX_TIMEOUT;
+  }
 }
 
-
+/**
+  * @brief  Enables or disables the UART oversampling.
+  * @param  NewState: functional state @ref FunctionalState
+  *         This parameter can be: ENABLE or DISABLE.
+  * @retval None
+  */
+void UART_Oversampling(FunctionalState NewState)
+{
+  assert_param(IS_FUNCTIONAL_STATE(NewState)); 
+  
+  if (NewState == ENABLE)
+  {
+    /* Enable the UART oversampling factor */
+    UART->CR_b.OVSFACT = 1;
+  }
+  else
+  {
+    /* Disable the UART oversampling factor */
+    UART->CR_b.OVSFACT = 0;
+  }
+}
 
 /**
   * @brief  Enables or disables the UART DMA interface.
@@ -498,7 +541,7 @@ void UART_DMACmd(uint8_t UART_DMAReq, FunctionalState NewState)
   assert_param(IS_UART_DMAREQ(UART_DMAReq));  
   assert_param(IS_FUNCTIONAL_STATE(NewState)); 
 
-  if (NewState != DISABLE)
+  if (NewState == ENABLE)
   {
     /* Enable the DMA transfer for selected requests by setting the DMAT and/or
        DMAR bits in the UART CR3 register */

@@ -29,7 +29,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "BlueNRG1.h"
+#include "BlueNRG_x_device.h"
 
 /** @addtogroup BLUENRG1_Peripheral_Driver BLUENRG1 Peripheral Driver
   * @{
@@ -205,6 +205,7 @@ typedef struct
   */
 
 void RTC_Init(RTC_InitType* RTC_InitStruct);
+void RTC_StructInit(RTC_InitType* RTC_InitStruct);
 void RTC_Cmd(FunctionalState NewState);
 void RTC_IT_Config(uint8_t RTC_IT, FunctionalState NewState);
 ITStatus RTC_IT_Status(uint8_t RTC_IT);

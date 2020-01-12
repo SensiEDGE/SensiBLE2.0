@@ -2,7 +2,7 @@
   ******************************************************************************
   * @file    BlueNRG1_i2c.c
   * @author  VMA Application Team
-  * @version V2.0.0
+  * @version V2.1.0
   * @date    21-March-2016
   * @brief   This file provides all the I2C firmware functions.
   ******************************************************************************
@@ -493,6 +493,27 @@ void I2C_SetHoldTimeStartCondition(I2C_Type* I2Cx, uint16_t I2C_HoldTime)
   }
   else if(I2Cx->CR_b.SM == I2C_CR_SM_FAST) {
     I2Cx->THDSTA_FST_STD_b.THDSTA_FST = I2C_HoldTime;
+  }
+}
+
+/**
+  * @brief  Set the setup time value for start condition.
+  * @param  I2Cx: where x can be 1 or 2 to select the I2C peripheral @ref I2C_Type
+  * @param  I2C_SetupTime: specifies the setup time value.
+  * @retval None
+  */
+void I2C_SetSetupTimeStartCondition(I2C_Type* I2Cx, uint16_t I2C_SetupTime)
+{
+  /* Check the parameters */
+  assert_param(IS_I2C_ALL_PERIPH(I2Cx));
+  assert_param(IS_I2C_SETUPTIME(I2C_SetupTime));
+
+  /* Standard mode */
+  if(I2Cx->CR_b.SM == I2C_CR_SM_STD) {
+    I2Cx->TSUSTA_FST_STD_b.TSUSTA_STD = I2C_SetupTime;
+  }
+  else if(I2Cx->CR_b.SM == I2C_CR_SM_FAST) {
+    I2Cx->TSUSTA_FST_STD_b.TSUSTA_FST = I2C_SetupTime;
   }
 }
 

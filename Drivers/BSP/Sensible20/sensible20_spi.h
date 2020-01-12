@@ -17,6 +17,7 @@
   */
 
 #include "BlueNRG1_spi.h"
+#include "main.h"
 
 #define BlueNRG1_MAX_DELAY   0xFFFFFFFFU
 
@@ -26,8 +27,6 @@ typedef enum
     BlueNRG1_SPI_ERROR    = 0x01,
     BlueNRG1_SPI_TIMEOUT  = 0x02,
 } BlueNRG1_SPI_StatusTypeDef;
-
-extern uint32_t lSystickCounter;
 
 void BlueNRG1_SPI_Init();
 void BlueNRG1_SPI_FlushRxFifo();

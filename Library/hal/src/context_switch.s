@@ -18,22 +18,30 @@
                  __EXPORT__ CS_contextSave
                  __EXPORT__ CS_contextRestore
                  __IMPORT__ savedMSP
-                 __IMPORT__ savedCurrentTime
                  __IMPORT__ savedICSR
                  __IMPORT__ savedSHCSR
                  __IMPORT__ savedNVIC_ISPR
 EXPORT_FUNC(CS_contextSave)
-                 PUSH   { r4 - r7, lr }       /* store R4-R7 and LR (5 words) onto the stack */
-                 MOV    R3, R8                /* mov thread {r8 - r12} to {r3 - r7} */
+                 MRS    R2, CONTROL             /* load the CONTROL register into R2 */
+                 MRS    R1, PSP                 /* load the process stack pointer into R1 */
+                 LDR    R0, =0
+                 MSR    CONTROL, R0             /* Switch to Main Stack Pointer */
+                 ISB
+                 
+                 PUSH   { r4 - r7, lr }         /* store R4-R7 and LR (5 words) onto the stack */
+                 MOV    R3, R8                  /* mov thread {r8 - r12} to {r3 - r7} */    
                  MOV    R4, R9
                  MOV    R5, R10
                  MOV    R6, R11        
                  MOV    R7, R12        
                  PUSH   {R3-R7}                 /* store R8-R12 (5 words) onto the stack */
+                 
                  LDR    R4, =savedMSP           /* load address of savedMSP into R4 */
-                 MOV    R3, SP                  /* load the stack pointer into R3 */
+                 MRS    R3, MSP                 /* load the stack pointer into R3 */
                  STR    R3, [R4]                /* store the MSP into savedMSP */
-                                  
+
+                 PUSH  { r1, r2 }               /*  store PSP, CONTROL */
+                 
                  LDR    R4, =0xE000ED04         /* load address of ICSR register into R4 */
                  LDR    R0, [R4]                /* load the ICSR register value into R0 */
                  LDR    R4, =savedICSR          /* load address of savedICSR into R4 */
@@ -48,46 +56,46 @@ EXPORT_FUNC(CS_contextSave)
                  LDR    R0, [R4]                /* load the NVIC_ISPR register value into R0 */
                  LDR    R4, =savedNVIC_ISPR     /* load address of savedNVIC_ISPR into R4 */
                  STR    R0, [R4]                /* store the NVIC_ISPR register value into savedNVIC_ISPR */
-                 
-                 LDR    R4, =0x48000010         /* load address of Blue Current Time register into R4 */
-                 LDR    R0, [R4]                /* load the Blue Current Time register value into R0 */
-                 LDR    R4, =savedCurrentTime   /* load address of savedCurrentTime into R4 */
-                 STR    R0, [R4]                /* store the Blue Current Time register value into savedCurrentTime */
+
+                 LDR    R4, =0x40200008         /* setup the  SYSTEM_CTRL->CTRL_b.MHZ32_SEL = 0 */
+                 LDR    R7, [R4]
+                 MOVS   R0, #0                 
+                 STR    R0, [R4]
 
                  DSB
-                 WFI                          /* all saved, trigger deep sleep */
+                 WFI                            /* all saved, trigger deep sleep */
+                 
+                 STR    R7, [R4]                /* if WFI will be skipped restore the content of the 
+                                                   SYSTEM_CTRL->CTRL_b.MHZ32_SEL with the original value */                 
                  ENDFUNC                 
 EXPORT_FUNC(CS_contextRestore)
                 /* Even if we fall through the WFI instruction, we will immediately
                  * execute a context restore and end up where we left off with no
                  * ill effects.  Normally at this point the core will either be
                  * powered off or reset (depending on the deep sleep level). */
-                LDR    R4, =savedMSP         /* load address of savedMSP into R4 */
-                LDR    R4, [R4]              /* load the SP from savedMSP */
-                MOV    SP, R4                /* restore the SP from R4 */
-                POP   {R3-R7}                /* load R8-R12 (5 words) from the stack */
-                MOV    R8, R3                /* mov {r3 - r7} to {r8 - r12} */
+                LDR    R4, =savedMSP            /* load address of savedMSP into R4 */
+                LDR    R4, [R4]                 /* load the MSP from savedMSP */
+                MSR    MSP, R4                  /* restore the MSP from R4 */
+              
+                SUB    SP, #0x8               
+                POP    { R0, R1 }               /* load PSP from the stack in R0, and  load CONTROL register from the stack in R1 */
+                
+                POP    { R3-R7 }                /* load R8-R12 (5 words) from the stack */
+                MOV    R8, R3                   /* mov {r3 - r7} to {r8 - r12} */
                 MOV    R9, R4
                 MOV    R10, R5
                 MOV    R11, R6
                 MOV    R12, R7
-                POP   { R4 - R7, PC }        /*load R4-R7 and PC (5 words) from the stack */
+                POP    { R4 - R7 }              /* load R4-R7 (4 words) from the stack */
+                POP    { R2 }                   /* load LR from the stack */
+                
+                MSR   PSP, R0                   /* restore PSP from R0 */
+                MSR   CONTROL , R1              /* restpre CONTROL register from R1 */
+                ISB
+ 
+                BX  R2                          /*load PC (1 words) from the stack */
+                                 
                 ENDFUNC
                
-//------------------------------------------------------------------------------
-//   void InternalIdleSleep(void)
-//
-// A simple internal function call (to be called from halSleep) for executing
-// the WFI instruction and entering the simple, idle sleep state.
-//------------------------------------------------------------------------------
-                  __EXPORT__ BlueNRG_IdleSleep
-EXPORT_FUNC(BlueNRG_IdleSleep)
-                  NOP
-                  WFI                    /* trigger idle sleep */
-                  NOP
-                  BX   LR                /* return */
-                  ENDFUNC
-
-
     ALIGN_MEM(4)
 	__END__

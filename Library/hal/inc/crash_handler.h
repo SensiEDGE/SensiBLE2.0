@@ -33,32 +33,28 @@
 /**
  * @brief Base address to store the Crash Information
  */
-#define CRASH_INFO_BASE_ADDRESS 0x20000008
 #define CRASH_RAM_SIZE          40
 
 /**
+ * @brief Signature Information: CRASH_SIGNATURE_BASE
+ */
+#define CRASH_SIGNATURE_BASE     0xBCEC0000
+/**
  * @brief Signature Information: ASSERT_SIGNATURE
  */
-#define ASSERT_SIGNATURE     0xBCEC0000
+#define ASSERT_SIGNATURE     (CRASH_SIGNATURE_BASE + 0)
 /**
  * @brief Signature Information: NMI_SIGNATURE
  */
-#define NMI_SIGNATURE        0xBCEC0001
+#define NMI_SIGNATURE        (CRASH_SIGNATURE_BASE + 1)
 /**
  * @brief Signature Information: HARD_FAULT_SIGNATURE
  */
-#define HARD_FAULT_SIGNATURE 0xBCEC0002
+#define HARD_FAULT_SIGNATURE (CRASH_SIGNATURE_BASE + 2)
 /**
  * @brief Signature Information: WATCHDOG_SIGNATURE
  */
-#define WATCHDOG_SIGNATURE   0xBCEC0003
-
-
-/**
- * @brief Get Crash Information utility
- */
-#define GET_CRASH_INFO(PTR)     { PTR = *(crash_info_t *)CRASH_INFO_BASE_ADDRESS; \
-                                  memset((void *)CRASH_INFO_BASE_ADDRESS, 0, CRASH_RAM_SIZE);}
+#define WATCHDOG_SIGNATURE   (CRASH_SIGNATURE_BASE +3)
 
 /**
  * @brief Typedef for the overall crash information (stack pointer, programm counter, registers, ...)
@@ -76,66 +72,9 @@ typedef PACKED(struct) crash_infoS {
   uint32_t xPSR;
 } crash_info_t;
 
-/**
- * @brief Macro to store in RAM the crash information. 
- *
- * All the information stored are words (32 bit):
- * - Crash Signature
- * - SP
- * - R0
- * - R1
- * - R2
- * - R3
- * - R12
- * - LR
- * - PC
- * - xPSR
- */
-  //__ASM volatile ("MOV %0, SP" : "=r" (reg_content) ); 
-/*  reg_content = __get_MSP() ;         to be compliant with Keil */
-#define CRASH_HANDLER(signature) {                                               \
-  volatile uint32_t * crash_info = (volatile uint32_t *)CRASH_INFO_BASE_ADDRESS; \
-  register uint32_t reg_content;                                                 \
-  /* Init to zero the crash_info RAM locations */                                \
-  for (reg_content=0; reg_content<NMB_OF_EXCEP_RAM_WORD; reg_content++) {        \
-    *crash_info = 0;                                                             \
-    crash_info++;                                                                \
-  }                                                                              \
-  crash_info = (volatile uint32_t *)CRASH_INFO_BASE_ADDRESS;                     \
-  /* Store Crash Signature */                                                    \
-  *crash_info = signature;                                                       \
-  crash_info++;                                                                  \
-  /* Store SP register */                                                        \
-   reg_content = __get_MSP() ;                                                   \
-  *crash_info = reg_content;                                                     \
-  crash_info++;                                                                  \
-  if ((reg_content >= 0x20000000) && (reg_content <= 0x20005FFF)) {              \
-    /* Store exception R0 */                                                     \
-    *crash_info = *(volatile uint32_t *)(reg_content+0x00);                      \
-    crash_info++;                                                                \
-    /* Store exception R1 */                                                     \
-    *crash_info = *(volatile uint32_t *)(reg_content+0x04);                      \
-    crash_info++;                                                                \
-    /* Store exception R2 */                                                     \
-    *crash_info = *(volatile uint32_t *)(reg_content+0x08);                      \
-    crash_info++;                                                                \
-    /* Store exception R3 */                                                     \
-    *crash_info = *(volatile uint32_t *)(reg_content+0x0C);                      \
-    crash_info++;                                                                \
-    /* Store exception R12 */                                                    \
-    *crash_info = *(volatile uint32_t *)(reg_content+0x10);                      \
-    crash_info++;                                                                \
-    /* Store exception LR */                                                     \
-    *crash_info = *(volatile uint32_t *)(reg_content+0x14);                      \
-    crash_info++;                                                                \
-    /* Store exception PC */                                                     \
-    *crash_info = *(volatile uint32_t *)(reg_content+0x18);                      \
-    crash_info++;                                                                \
-    /* Store exception xPSR */                                                   \
-    *crash_info = *(volatile uint32_t *)(reg_content+0x1C);                      \
-  }                                                                              \
-}                                                                                \
 
+extern crash_info_t crash_info_ram;
+  
 /**
  * @brief Macro to store in RAM the register information where an assert is verified.
  *
@@ -152,7 +91,7 @@ typedef PACKED(struct) crash_infoS {
  * - xPSR
  */
 #define ASSERT_HANDLER(expression) {                                              \
-  volatile uint32_t * crash_info = (volatile uint32_t *)CRASH_INFO_BASE_ADDRESS;  \
+  volatile uint32_t * crash_info = (volatile uint32_t *)&crash_info_ram;  \
   register uint32_t reg_content;                                                  \
   if (!(expression)) {                                                            \
    /* Init to zero the crash_info RAM locations */                                \
@@ -160,7 +99,7 @@ typedef PACKED(struct) crash_infoS {
      *crash_info = 0;                                                             \
      crash_info++;                                                                \
    }                                                                              \
-   crash_info = (volatile uint32_t *)CRASH_INFO_BASE_ADDRESS;                     \
+   crash_info = (volatile uint32_t *)&crash_info_ram;                     \
    /* Store Crash Signature */                                                    \
    *crash_info = ASSERT_SIGNATURE;                                                \
    crash_info+=2;                                                                 \
@@ -203,4 +142,4 @@ typedef PACKED(struct) crash_infoS {
   }                                                                               \
 }                                                                                 \
 
-#endif // __CRASH_HANDLER_H_
+#endif /* __CRASH_HANDLER_H_ */

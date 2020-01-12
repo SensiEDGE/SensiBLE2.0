@@ -2,7 +2,7 @@
   ******************************************************************************
   * @file    BlueNRG1_sysCtrl.c
   * @author  VMA Application Team
-  * @version V2.0.0
+  * @version V2.0.1
   * @date    21-March-2016
   * @brief   This file provides all the System Controller firmware functions.
   ******************************************************************************
@@ -101,7 +101,6 @@ void SysCtrl_DeInit(void)
 {
   SYSTEM_CTRL->WKP_IO_IS  = 0x00;
   SYSTEM_CTRL->WKP_IO_IE  = 0x03;
-  CKGEN_SOC->CONTROL      = 0x01FA03F0;
   CKGEN_SOC->CLOCK_EN     = 0x0003FFFF;
   CKGEN_BLE->CLK32K_COUNT = 0x0000000F;
   CKGEN_BLE->CLK32K_IT    = 0x00000000;
@@ -125,6 +124,7 @@ void SysCtrl_DeInit(void)
   *         @arg CLOCK_PERIPH_RTC Clock of RTC peripheral
   *         @arg CLOCK_PERIPH_DMA Clock of DMA peripheral
   *         @arg CLOCK_PERIPH_RNG Clock of RNG peripheral
+  *         @arg CLOCK_PERIPH_PKA Clock of PKA peripheral
   * @param NewState: New state of the peripheral clock.
   *   This parameter can be: ENABLE or DISABLE.
   * @retval None
