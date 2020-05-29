@@ -38,7 +38,7 @@
 /* Includes ------------------------------------------------------------------*/
 
 #include "steval_bluemic1.h"
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
 #include "sensible20_led.h"
 #endif
 
@@ -112,7 +112,7 @@ DrvStatusTypeDef StevalBlueMic1_I2CWrite(uint8_t* pBuffer, uint8_t DeviceAddr, u
   */
 void BSP_PB_Init(Button_TypeDef Button, ButtonMode_TypeDef ButtonMode)
 {
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
     
 #else
   GPIO_InitType GPIO_InitStructure;
@@ -174,7 +174,7 @@ void BSP_PB_Init(Button_TypeDef Button, ButtonMode_TypeDef ButtonMode)
   */
 uint32_t BSP_PB_GetState(Button_TypeDef Button)
 {
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
   if(GPIO_ReadBit(BUTTON_PIN[Button]))
     return 1;
   else
@@ -219,7 +219,7 @@ void BSP_PB_ClearITPendingBit(Button_TypeDef Button)
  */
 void BSP_LED_Init(Led_TypeDef Led)
 {
-#if defined(SENSIBLE_2_0)
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
     if(Led == LED1) {
       SENSI_LedInit(SENSI_Led0);
     } else {
@@ -241,7 +241,7 @@ void BSP_LED_Init(Led_TypeDef Led)
 }
 
 
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
 uint8_t BSP_LED_IsOn(Led_TypeDef Led)
 {
     if(Led == LED1) {
@@ -261,7 +261,7 @@ uint8_t BSP_LED_IsOn(Led_TypeDef Led)
   */
 void BSP_LED_On(Led_TypeDef Led)
 {
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
   if(Led == LED1) {
     SENSI_LedOn(SENSI_Led0);
   } else {
@@ -281,7 +281,7 @@ void BSP_LED_On(Led_TypeDef Led)
   */
 void BSP_LED_Off(Led_TypeDef Led)
 {
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
   if(Led == LED1) {
     SENSI_LedOff(SENSI_Led0);
   } else {
@@ -301,7 +301,7 @@ void BSP_LED_Off(Led_TypeDef Led)
   */
 void BSP_LED_Toggle(Led_TypeDef Led)
 {
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
   if(Led == LED1) {
     SENSI_LedToggle(SENSI_Led0);
   } else {

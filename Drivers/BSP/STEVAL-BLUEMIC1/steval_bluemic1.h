@@ -44,7 +44,11 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
+#ifdef BLUENRG2_DEVICE
+#include "BlueNRG2.h"
+#else
 #include "BlueNRG1.h"
+#endif
 #include "BlueNRG1_conf.h"
 #include "accelerometer.h"
 
@@ -161,7 +165,7 @@ typedef enum
 * @{
 */ 
 
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
 uint8_t BSP_LED_IsOn(Led_TypeDef Led);
 #endif // SENSIBLE_20
    

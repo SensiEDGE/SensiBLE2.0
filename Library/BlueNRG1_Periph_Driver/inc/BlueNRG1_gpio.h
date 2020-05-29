@@ -29,7 +29,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "BlueNRG_x_device.h"
+#include "bluenrg_x_device.h"
 
 /** @addtogroup BLUENRG1_Peripheral_Driver BLUENRG1 Peripheral Driver
   * @{
@@ -381,24 +381,23 @@ typedef enum
 /* PDM Data Signal */
 #define GPIO_InitPdmDataPin1()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_1, Serial2_Mode, DISABLE, DISABLE});
 #define GPIO_InitPdmDataPin6()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_6, Serial2_Mode, DISABLE, DISABLE});
+#define GPIO_DeInitPdmDataPin6()  GPIO_Init(&(GPIO_InitType){GPIO_Pin_6, GPIO_Input, DISABLE, DISABLE});
 #define GPIO_InitPdmDataPin8()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_8, Serial2_Mode, DISABLE, DISABLE});
 
 #ifdef BLUENRG2_DEVICE
 #define GPIO_InitPdmDataPin24()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_24, Serial2_Mode, DISABLE, DISABLE});
 #endif
 
-#define GPIO_DeInitPdmDataPin6()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_6, GPIO_Input, DISABLE, DISABLE});
-
 /* PDM Clock Signal */
 #define GPIO_InitPdmClockPin2()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_2, Serial2_Mode, DISABLE, DISABLE});
 #define GPIO_InitPdmClockPin7()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_7, Serial2_Mode, DISABLE, DISABLE});
+#define GPIO_DeInitPdmClockPin7() GPIO_Init(&(GPIO_InitType){GPIO_Pin_7, GPIO_Input, DISABLE, DISABLE});
 
 #ifdef BLUENRG2_DEVICE
 #define GPIO_InitPdmClockPin23()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_23, Serial2_Mode, DISABLE, DISABLE});
 #define GPIO_InitPdmClockPin25()    GPIO_Init(&(GPIO_InitType){GPIO_Pin_25, Serial2_Mode, DISABLE, DISABLE});
 #endif
 
-#define GPIO_DeInitPdmClockPin7()   GPIO_Init(&(GPIO_InitType){GPIO_Pin_7, GPIO_Input, DISABLE, DISABLE});
 
 /**
   * @}

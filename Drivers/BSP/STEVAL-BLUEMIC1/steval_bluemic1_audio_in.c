@@ -125,7 +125,7 @@ void HT_IT_Callback(void);
 */
 void BSP_AUDIO_IN_Init(uint32_t AudioFreq) 
 {
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
     
     // Init mic power control pin
     PE_InitStruct_t init = {

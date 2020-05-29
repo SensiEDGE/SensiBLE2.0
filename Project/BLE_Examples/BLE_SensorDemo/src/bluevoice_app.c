@@ -229,7 +229,7 @@ void BV_APP_DataUpdate(void)
   }    
 }
 
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
 
 #endif // SENSIBLE_2_0
 

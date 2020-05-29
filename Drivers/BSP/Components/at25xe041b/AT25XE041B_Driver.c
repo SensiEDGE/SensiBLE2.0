@@ -35,7 +35,7 @@
 #include "AT25XE041B_Driver.h"
 #include "main.h"
 
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
     #include "sensible20_spi.h"
     #include "BlueNRG1_gpio.h"
     #include "BlueNRG1_sysCtrl.h"
@@ -84,7 +84,7 @@
 #endif
 
 /* Private defines begin -----------------------------------------------------*/
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
     #define AT25XE041B_CS_PIN GPIO_Pin_1
 
     #define AT25XE041B_CS_ON()   GPIO_ResetBits(GPIO_Pin_1)
@@ -138,7 +138,7 @@
     #define AT25XE041B_CS_OFF()  HAL_GPIO_WritePin(AT25XE041B_CS_PORT, AT25XE041B_CS_PIN, GPIO_PIN_SET)
 #endif
 
-#if defined (SENSIBLE_2_0) || defined (USE_SENSI_ULE) || defined (USE_SENSI_NBIOT)
+#if defined (SENSIBLE_2_0) || defined (SENSIBLE_2_1) || defined (USE_SENSI_ULE) || defined (USE_SENSI_NBIOT)
     #define AT25XE041B_ENTER_CRITICAL_SECTION()
     #define AT25XE041B_EXIT_CRITICAL_SECTION()
 #elif defined APOS    
@@ -1074,15 +1074,15 @@ static AT25XE041B_StatusTypeDef AT25XE041B_ExitLowPowerMode(void)
 */
 static uint32_t AT25XE041B_GetTick(void)
 {
-    #ifdef SENSIBLE_2_0
-        return tick_ms();
-    #elif defined APOS
-        return APOS_GetTick();
-    #elif defined USE_SENSI_NBIOT
-        return osKernelSysTick();
-    #else
-        return HAL_GetTick();
-    #endif
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
+    return tick_ms();
+#elif defined APOS
+    return APOS_GetTick();
+#elif defined USE_SENSI_NBIOT
+    return osKernelSysTick();
+#else
+    return HAL_GetTick();
+#endif
 }
 
 /**
@@ -1093,26 +1093,25 @@ static uint32_t AT25XE041B_GetTick(void)
 */
 static void AT25XE041B_Wait(uint32_t time)
 {
-    #if defined SENSIBLE_2_0
-        uint32_t nWaitPeriod = ~tick_ms();
-        if(nWaitPeriod < time)
-        {
-            while( tick_ms() != 0xFFFFFFFF);
-            nWaitPeriod = time - nWaitPeriod;
-        }
-        else
-        {
-            nWaitPeriod = time + ~nWaitPeriod;
-        }
-        
-        while(tick_ms() != nWaitPeriod);
-    #elif defined USE_SENSI_NBIOT
-        osDelay(time);
-    #elif defined APOS
-        APOS_DelayMs(time);
-    #else
-        HAL_Delay(time);
-    #endif
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
+    uint32_t nWaitPeriod = ~tick_ms();
+    if (nWaitPeriod < time)
+    {
+        while (tick_ms() != 0xFFFFFFFF);
+        nWaitPeriod = time - nWaitPeriod;
+    } else
+    {
+        nWaitPeriod = time + ~nWaitPeriod;
+    }
+
+    while (tick_ms() != nWaitPeriod);
+#elif defined USE_SENSI_NBIOT
+    osDelay(time);
+#elif defined APOS
+    APOS_DelayMs(time);
+#else
+    HAL_Delay(time);
+#endif
 }
 
 /**
@@ -1123,14 +1122,14 @@ static void AT25XE041B_Wait(uint32_t time)
 */
 static AT25XE041B_StatusTypeDef AT25XE041B_SPI_Init(void)
 {
-    #ifdef SENSIBLE_2_0
-        BlueNRG1_SPI_Init();
-    #elif defined APOS
-        //BlueNRG1_SPI_Init();
-        SdkEvalSpiInit(SPI_FREQUENCY);
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
+    BlueNRG1_SPI_Init();
+#elif defined APOS
+    //BlueNRG1_SPI_Init();
+    SdkEvalSpiInit(SPI_FREQUENCY);
     #else
-        SPI_Global_Init();
-    #endif
+    SPI_Global_Init();
+#endif
     return AT25XE041B_OK;
 }
 
@@ -1144,24 +1143,24 @@ static AT25XE041B_StatusTypeDef AT25XE041B_SPI_FlushRxFifo(void)
 {
     AT25XE041B_StatusTypeDef status;
     
-    #ifdef SENSIBLE_2_0
-        BlueNRG1_SPI_FlushRxFifo();
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
+    BlueNRG1_SPI_FlushRxFifo();
+    status = AT25XE041B_OK;
+#elif defined APOS
+    SPI_ClearTXFIFO();
+    SPI_ClearRXFIFO();
+    status = AT25XE041B_OK;
+#else
+    HAL_StatusTypeDef halStatus;
+    halStatus = HAL_SPIEx_FlushRxFifo(&SpiHandle);
+    switch(halStatus){
+    case HAL_OK:
         status = AT25XE041B_OK;
-    #elif defined APOS
-        SPI_ClearTXFIFO();
-        SPI_ClearRXFIFO();
-        status = AT25XE041B_OK;
-    #else
-        HAL_StatusTypeDef halStatus;
-        halStatus = HAL_SPIEx_FlushRxFifo(&SpiHandle);
-        switch(halStatus){
-        case HAL_OK:
-            status = AT25XE041B_OK;
-            break;
-        default:
-            status = AT25XE041B_ERROR;
-        }
-    #endif
+        break;
+    default:
+        status = AT25XE041B_ERROR;
+    }
+#endif
     
     return status;
 }
@@ -1178,48 +1177,51 @@ static AT25XE041B_StatusTypeDef AT25XE041B_SPI_Receive(uint8_t *pData, uint16_t 
 {
     AT25XE041B_StatusTypeDef status;
     
-    #ifdef SENSIBLE_2_0
-        BlueNRG1_SPI_StatusTypeDef blueNrgStatus;
-        blueNrgStatus = BlueNRG1_SPI_Receive(pData, size, timeout);
-        switch(blueNrgStatus){
-        case BlueNRG1_SPI_OK:
-            status = AT25XE041B_OK;
-            break;
-        case BlueNRG1_SPI_TIMEOUT:
-            status = AT25XE041B_TIMEOUT;
-        default:
-            status = AT25XE041B_ERROR;
-        }
-    #elif defined APOS
-        uint32_t tickstart = APOS_GetTick();
-        for(uint16_t i = 0; i < size; i++)
-        {
-            while(RESET == SPI_GetFlagStatus(SPI_FLAG_TFE));
-            SPI_SendData(0);
-            while(RESET == SPI_GetFlagStatus(SPI_FLAG_RNE));
-            pData[i] = SPI_ReceiveData() & 0xFF;
-            while (SET == SPI_GetFlagStatus(SPI_FLAG_BSY));
-            
-            if((APOS_GetTick() - tickstart) >= timeout){
-                status = AT25XE041B_TIMEOUT;
-            }
-        }
+
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
+    BlueNRG1_SPI_StatusTypeDef blueNrgStatus;
+    blueNrgStatus = BlueNRG1_SPI_Receive(pData, size, timeout);
+    switch (blueNrgStatus)
+    {
+    case BlueNRG1_SPI_OK:
         status = AT25XE041B_OK;
-    #else
-        HAL_StatusTypeDef halStatus;
-        halStatus = HAL_SPI_Receive(&SpiHandle, pData, size, timeout);
-        switch(halStatus){
-        case HAL_OK:
-            status = AT25XE041B_OK;
-            break;
-        case HAL_TIMEOUT:
+        break;
+    case BlueNRG1_SPI_TIMEOUT:
+        status = AT25XE041B_TIMEOUT;
+    default:
+        status = AT25XE041B_ERROR;
+    }
+#elif defined APOS
+    uint32_t tickstart = APOS_GetTick();
+    for(uint16_t i = 0; i < size; i++)
+    {
+        while(RESET == SPI_GetFlagStatus(SPI_FLAG_TFE));
+        SPI_SendData(0);
+        while(RESET == SPI_GetFlagStatus(SPI_FLAG_RNE));
+        pData[i] = SPI_ReceiveData() & 0xFF;
+        while (SET == SPI_GetFlagStatus(SPI_FLAG_BSY));
+
+        if((APOS_GetTick() - tickstart) >= timeout){
             status = AT25XE041B_TIMEOUT;
-            break;
-        default:
-            status = AT25XE041B_ERROR;
         }
-    #endif
-    
+    }
+    status = AT25XE041B_OK;
+    #else
+    HAL_StatusTypeDef halStatus;
+    halStatus = HAL_SPI_Receive(&SpiHandle, pData, size, timeout);
+    switch (halStatus)
+    {
+    case HAL_OK:
+        status = AT25XE041B_OK;
+        break;
+    case HAL_TIMEOUT:
+        status = AT25XE041B_TIMEOUT;
+        break;
+    default:
+        status = AT25XE041B_ERROR;
+    }
+#endif
+
     return status;
 }
 
@@ -1235,47 +1237,47 @@ static AT25XE041B_StatusTypeDef AT25XE041B_SPI_Transmit(uint8_t *pData, uint16_t
 {    
     AT25XE041B_StatusTypeDef status;
     
-    #ifdef SENSIBLE_2_0
-        BlueNRG1_SPI_StatusTypeDef blueNrgStatus;
-        blueNrgStatus = BlueNRG1_SPI_Transmit(pData, size, timeout);
-        switch(blueNrgStatus){
-        case BlueNRG1_SPI_OK:
-            status = AT25XE041B_OK;
-            break;
-        case BlueNRG1_SPI_TIMEOUT:
-            status = AT25XE041B_TIMEOUT;
-        default:
-            status = AT25XE041B_ERROR;
-        }
-    #elif defined APOS
-        uint32_t tickstart = APOS_GetTick();
-        for(uint16_t i = 0; i < size; i++)
-        {
-            while(RESET == SPI_GetFlagStatus(SPI_FLAG_TFE));
-            SPI_SendData(pData[i]);
-            while(RESET == SPI_GetFlagStatus(SPI_FLAG_RNE));
-            SPI_ReceiveData();
-            while (SET == SPI_GetFlagStatus(SPI_FLAG_BSY));
-            
-            if((APOS_GetTick() - tickstart) >= timeout){
-                status = AT25XE041B_TIMEOUT;
-            }
-        }
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
+    BlueNRG1_SPI_StatusTypeDef blueNrgStatus;
+    blueNrgStatus = BlueNRG1_SPI_Transmit(pData, size, timeout);
+    switch(blueNrgStatus){
+    case BlueNRG1_SPI_OK:
         status = AT25XE041B_OK;
-    #else
-        HAL_StatusTypeDef halStatus;
-        halStatus = HAL_SPI_Transmit(&SpiHandle, pData, size, timeout);
-        switch(halStatus){
-        case HAL_OK:
-            status = AT25XE041B_OK;
-            break;
-        case HAL_TIMEOUT:
+        break;
+    case BlueNRG1_SPI_TIMEOUT:
+        status = AT25XE041B_TIMEOUT;
+    default:
+        status = AT25XE041B_ERROR;
+    }
+#elif defined APOS
+    uint32_t tickstart = APOS_GetTick();
+    for(uint16_t i = 0; i < size; i++)
+    {
+        while(RESET == SPI_GetFlagStatus(SPI_FLAG_TFE));
+        SPI_SendData(pData[i]);
+        while(RESET == SPI_GetFlagStatus(SPI_FLAG_RNE));
+        SPI_ReceiveData();
+        while (SET == SPI_GetFlagStatus(SPI_FLAG_BSY));
+
+        if((APOS_GetTick() - tickstart) >= timeout){
             status = AT25XE041B_TIMEOUT;
-            break;
-        default:
-            status = AT25XE041B_ERROR;
         }
-    #endif
+    }
+    status = AT25XE041B_OK;
+#else
+    HAL_StatusTypeDef halStatus;
+    halStatus = HAL_SPI_Transmit(&SpiHandle, pData, size, timeout);
+    switch(halStatus){
+    case HAL_OK:
+        status = AT25XE041B_OK;
+        break;
+    case HAL_TIMEOUT:
+        status = AT25XE041B_TIMEOUT;
+        break;
+    default:
+        status = AT25XE041B_ERROR;
+    }
+#endif
     
     return status;
 }

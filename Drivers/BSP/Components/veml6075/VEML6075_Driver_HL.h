@@ -73,7 +73,7 @@ extern "C" {
 /** @addtogroup VEML6075_I2C_Addresses VEML6075 I2C Addresses
  * @{
  */
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
     #define VEML6075_ADDRESS_DEFAULT  0x10  /**< VEML6075 I2C Address */
 #else
     #define VEML6075_ADDRESS_DEFAULT  0x20  /**< VEML6075 I2C Address */

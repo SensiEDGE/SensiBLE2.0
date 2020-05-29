@@ -91,15 +91,17 @@ void BSP_BatLevel_IN_DeInit(void)
   */
 void BSP_BatLevel_IN_Init(void)
 {
+    ADC_SwCalibration();
+
     SysCtrl_PeripheralClockCmd(CLOCK_PERIPH_ADC, ENABLE);
     ADC_InitType xADC_InitType;
 
     /* Configure ADC */    
     xADC_InitType.ADC_OSR = ADC_OSR_200;
     xADC_InitType.ADC_Input = ADC_Input_AdcPin2;
-    xADC_InitType.ADC_ConversionMode = ADC_ConversionMode_Continuous;//ADC_ConversionMode_Single;//
+    xADC_InitType.ADC_ConversionMode = ADC_ConversionMode_Single;//ADC_ConversionMode_Continuous;//
     xADC_InitType.ADC_ReferenceVoltage = ADC_ReferenceVoltage_0V6;
-    xADC_InitType.ADC_Attenuation = ADC_Attenuation_6dB02;
+    xADC_InitType.ADC_Attenuation = ADC_Attenuation_9dB54;//ADC_Attenuation_6dB02;
     
     while(ADC->SR_REG_b.BUSY != RESET){
         ADC_Cmd(ENABLE);
@@ -134,7 +136,7 @@ void BSP_BatLevel_GetValues(uint32_t *soc, uint32_t *voltage, int32_t *current)
     while(RESET == ADC_GetFlagStatus(ADC_FLAG_EOC));
     float volt = ADC_GetConvertedData(ADC_Input_AdcPin2, ADC_ReferenceVoltage_0V6);
     volt *= 2.0f;
-    
+
     if(counter < 5){
         counter++;
         prevVoltValue = volt;

@@ -213,7 +213,7 @@ typedef struct
 /**
 * @brief  I2C address.
 */
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
 #define HTS221_I2C_ADDRESS  (uint8_t)0x5F
 #else
 #define HTS221_I2C_ADDRESS  (uint8_t)0xBE

@@ -75,7 +75,7 @@ extern "C" {
 /** @addtogroup HTS221_I2C_Addresses HTS221 I2C Addresses
  * @{
  */
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
     #define HTS221_ADDRESS_DEFAULT  HTS221_I2C_ADDRESS  /**< HTS221 I2C Address */
 #else
     #define HTS221_ADDRESS_DEFAULT  0xBE  /**< HTS221 I2C Address */

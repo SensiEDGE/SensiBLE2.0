@@ -74,11 +74,13 @@
 
 #ifdef SENSIBLE_2_0
 #define NAME_WEAR 'S', 'e', 'n', 's', 'i', 'B', 'L', 'E', '2', '.', '0'
+#elif defined SENSIBLE_2_1
+#define NAME_WEAR 'S', 'e', 'n', 's', 'i', 'B', 'L', 'E', '2', '.', '1'
 #else
 #define NAME_WEAR 'B', 'V', 'B', 'N', 'R', 'G', '1'
 #endif // SENSIBLE_2_0
    
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
 
 #define APP_UPDATE_ALL_PERIOD                           500 //ms
 #define APP_UPDATE_MIC_LEVEL_PERIOD                     50 //ms
@@ -152,7 +154,7 @@ APP_Status PER_APP_Init_BLE(void)
 {
   uint8_t ret = 0;
   uint16_t service_handle, dev_name_char_handle, appearance_char_handle;
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
   // Try to generate unique MAC
   uint8_t *p = (uint8_t*)0x100007F4;
   for(int i = 0; i < 6; i++) {
@@ -287,7 +289,7 @@ APP_Status PER_APP_Advertise(void)
     AD_TYPE_COMPLETE_LOCAL_NAME, NAME_WEAR
   };
 
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
   uint8_t manuf_data[24] = {
 
     2,0x0A,0x00,
@@ -334,7 +336,7 @@ APP_Status PER_APP_Advertise(void)
                            sizeof(local_name), local_name, 0, NULL, 0, 0);
 
   /* Send Advertising data */
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
   ret = aci_gap_update_adv_data(24, manuf_data);
 #else
   ret = aci_gap_update_adv_data(20, manuf_data);
@@ -596,7 +598,7 @@ void hci_le_connection_complete_event(uint8_t Status,
   
   FirstConnectionConfig = 0;
   
-#ifndef SENSIBLE_2_0 
+#if (!defined SENSIBLE_2_0) && (!defined SENSIBLE_2_1)
   BSP_LED_On(LED1);
 #endif // SENSIBLE_2_0
 
@@ -664,7 +666,7 @@ void hci_disconnection_complete_event(uint8_t Status,
   FirstConnectionConfig = 0;
   
   APP_PER_state = APP_STATUS_ADVERTISEMENT;
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
   BSP_LED_Off(LED1);
 #endif // SENSIBLE_2_0
   
@@ -722,7 +724,7 @@ void aci_gatt_attribute_modified_event(uint16_t Connection_Handle,
     if(Attr_Data[0] == 0x01)
     {
       APP_PER_enabled.APP_INERTIAL_ENABLE = 1;
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
       /* Inertial sensors Enable */
       INERTIAL_APP_Init();
       
@@ -738,7 +740,7 @@ void aci_gatt_attribute_modified_event(uint16_t Connection_Handle,
       {
         APP_PER_enabled.APP_INERTIAL_ENABLE = 0;//APP_READY;
       }
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
       INERTIAL_APP_Disable();
       
       SensorsDisableMag();
@@ -749,7 +751,7 @@ void aci_gatt_attribute_modified_event(uint16_t Connection_Handle,
     }
   }
   
-#ifdef SENSIBLE_2_0
+#if (defined SENSIBLE_2_0) || (defined SENSIBLE_2_1)
   sensible_aci_gatt_attribute_modified_event(Connection_Handle,
                                              Attr_Handle,
                                              Offset,
