@@ -279,6 +279,13 @@ static void sleep(void)
     {
         if (1)
         {
+            if (HAL_VTimerStart_ms(0, 5000) != 0) {
+              return;
+            } else {
+              /* The BTLE_StackTick() is necessary to activate the sleep timer */
+              BTLE_StackTick();
+            }
+
           BlueNRG_Sleep(SLEEPMODE_WAKETIMER, 0, 0);
         }
         else

@@ -66,11 +66,11 @@ static uint32_t ConnectionBleStatus;
 #ifdef SENSIBLE_2_0
 #define MCU_TYPE                "BlueNRG_1"
 #define PACKAGE_NAME            "SensiBLE-2.0"
-#define VERSION                 '2','2','0'
+#define VERSION                 '2','3','0'
 #elif defined SENSIBLE_2_1
 #define MCU_TYPE                "BlueNRG_2"
 #define PACKAGE_NAME            "SensiBLE-2.1"
-#define VERSION                 '3','0','0'
+#define VERSION                 '3','1','0'
 #else
 #error "SENSIBLE_2_0 or SENSIBLE_2_1 must be defined!"
 #endif
