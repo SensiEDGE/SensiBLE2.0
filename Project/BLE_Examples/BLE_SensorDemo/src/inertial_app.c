@@ -107,9 +107,6 @@ volatile uint16_t AccHandle = 0;
   * @}
   */
 
-INERTIAL_APP_Status AccGyro_Update(void);
-
-
 /** @defgroup INERTIAL_APP_Exported_Functions INERTIAL_APP_Exported_Functions
  * @{
  */  
@@ -142,7 +139,7 @@ INERTIAL_APP_Status INERTIAL_APP_add_char(uint16_t service_handle)
 INERTIAL_APP_Status INERTIAL_APP_Init(void)
 {
     uint8_t status = 0;
-    
+
     BSP_ACCELERO_IsInitialized(&ACCELERO_handle, &status);
     if(status == 0) {
         if(BSP_ACCELERO_Init(LIS2DW12_0, &ACCELERO_handle) == COMPONENT_ERROR)
@@ -151,7 +148,7 @@ INERTIAL_APP_Status INERTIAL_APP_Init(void)
         }
     }
     BSP_ACCELERO_Sensor_Enable( ACCELERO_handle );
-  
+
     return INERTIAL_APP_SUCCESS;
 }
 
@@ -276,8 +273,7 @@ INERTIAL_APP_Status INERTIAL_APP_DataUpdate(uint16_t service_handle)
     buff[12] = (uint8_t)(MAG_Value.AXIS_Z);
     buff[13] = (uint8_t)(MAG_Value.AXIS_Z>>8);
     
-    if(aci_gatt_update_char_value(service_handle, AccHandle, 0,
-                                      sizeof(buff), buff)==BLE_STATUS_INSUFFICIENT_RESOURCES)
+    if(aci_gatt_update_char_value(service_handle, AccHandle, 0, sizeof(buff), buff)==BLE_STATUS_INSUFFICIENT_RESOURCES)
     {
       return INERTIAL_APP_ERROR;
     }

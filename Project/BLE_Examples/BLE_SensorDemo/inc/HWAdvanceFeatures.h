@@ -60,7 +60,8 @@ typedef enum
     ACC_FREE_FALL    = 0x10,
     ACC_SINGLE_TAP   = 0x20,
     ACC_DOUBLE_TAP   = 0x40,
-    ACC_WAKE_UP      = 0x80
+    ACC_WAKE_UP      = 0x80,
+	ACC_PEDOMETER    = 0x80
 } AccEventType;
 
 typedef enum
@@ -81,8 +82,6 @@ void InitHWFeatures(void);
 
 void EnableHWMultipleEvents(void);
 void DisableHWMultipleEvents(void);
-
-void DisableHWFeatures(void);
 
 void EnableSWPedometer(void);
 void DisableSWPedometer(void);

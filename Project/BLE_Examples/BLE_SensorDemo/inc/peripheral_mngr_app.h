@@ -52,6 +52,41 @@
 #include "bluevoice_app.h"
 #include "inertial_app.h"
 
+/* Masks for features used in manufacturer data */
+#define SENSI_UUID_MASK_PEDOMETER       (1 << 0)         // Pedometer                     // 0
+#define SENSI_UUID_MASK_GESTURE         (1 << 1)         // MemsGesture                   // 1
+#define SENSI_UUID_MASK_PROX_GETURE     (1 << 2)         // ProximityGesture              // 2
+#define SENSI_UUID_MASK_CARRY_POS       (1 << 3)         // Carry Position                // 3
+#define SENSI_UUID_MASK_ACTIVITY        (1 << 4)         // Activity                      // 4
+#define SENSI_UUID_MASK_COMPASS         (1 << 6)         // Compass                       // 5
+#define SENSI_UUID_MASK_MOTION_INTENS   (1 << 5)         // Motion intensity              // 6
+#define SENSI_UUID_MASK_FUSION          (1 << 7)         // Sensor Fusion                 // 7
+#define SENSI_UUID_MASK_FUSION_COMPACT  (1 << 8)         // Sensor Fusion Compact         // 8
+#define SENSI_UUID_MASK_FREEFALL        (1 << 9)         // FreeFall                      // 9
+#define SENSI_UUID_MASK_ACC_EVENT       (1 << 10)        // AccEvent                      // 10
+#define SENSI_UUID_MASK_BEAMFORMING     (1 << 11)        // Beam forming                  // 11
+#define SENSI_UUID_MASK_SD_LOG          (1 << 12)        // SD Logging                    // 12
+#define SENSI_UUID_MASK_OTA_REBOOT      (1 << 13)        // STM32WB OTA Reboot bit        // 13
+#define SENSI_UUID_MASK_THREAD_REBOOT   (1 << 14)        // STM32WB Thread Reboot bit     // 14
+#define SENSI_UUID_MASK_CO              (1 << 15)        // CO Sensor                     // 15
+#define SENSI_UUID_MASK_TMP2            (1 << 16)        // Second Temperature            // 16
+#define SENSI_UUID_MASK_BAT             (1 << 17)        // Battery                       // 17
+#define SENSI_UUID_MASK_TMP1            (1 << 18)        // Temperature                   // 18
+#define SENSI_UUID_MASK_HUM             (1 << 19)        // Humidity                      // 19
+#define SENSI_UUID_MASK_PRES            (1 << 20)        // Pressure                      // 20
+#define SENSI_UUID_MASK_AMG             (1 << 21)        // Mag                           // 21
+#define SENSI_UUID_MASK_GYRO            (1 << 22)        // Gyro                          // 22
+#define SENSI_UUID_MASK_ACC             (1 << 23)        // Acc                           // 23
+#define SENSI_UUID_MASK_LUX             (1 << 24)        // Lux                           // 24
+#define SENSI_UUID_MASK_PROX            (1 << 25)        // Proximity                     // 25
+#define SENSI_UUID_MASK_MIC_LEVEL       (1 << 26)        // MicLevel                      // 26
+#define SENSI_UUID_MASK_ADPC_AUDIO      (1 << 27)        // ADPC Audio                    // 27
+#define SENSI_UUID_MASK_DIR_OF_ARRIVAL  (1 << 28)        // Direction of arrival          // 28
+#define SENSI_UUID_MASK_SWITCH          (1 << 29)        // Switch                        // 29
+#define SENSI_UUID_MASK_ADPCM_SYNC      (1 << 30)        // ADPCM Sync                    // 30
+#define SENSI_UUID_MASK_RFU             (1 << 31)        // RFU                           // 31
+#define SENSI_UUID_MASK_COUNT           (1 << 32)        // SENSI_FEATURES_COUNT          // 32
+
 /** @addtogroup BLUEMIC_1_APP BLUEMIC_1_APP
  * @{
  */
@@ -98,13 +133,12 @@ struct app_per_enabled_s
   bool APP_BLUEVOICE_ENABLE;
   bool APP_INERTIAL_ENABLE;
   bool APP_ENV_ENABLE;
-  bool APP_CO_LUX_ENABLE;
+  bool APP_LUX_ENABLE;
   bool APP_LED_ENABLE;
   bool APP_BAT_ENABLE;
   bool APP_MIC_LEVEL_ENABLE;
+  bool APP_COLOR_AMBIENT;
 };
-
-
 
 /* Exported variables --------------------------------------------------------*/
 extern volatile uint8_t AccGryro_DataReady;

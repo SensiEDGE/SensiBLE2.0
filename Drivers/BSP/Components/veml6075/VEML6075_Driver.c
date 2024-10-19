@@ -2,11 +2,11 @@
  ******************************************************************************
  * @file    VEML6075_Driver.c
  * @version V1.0
- * @date    09-August-2017
+ * @date    09-October-2024
  * @brief   VEML6075 driver file
  ******************************************************************************
  *
- * COPYRIGHT(c) 2019 SensiEDGE
+ * COPYRIGHT(c) 2024 SensiEDGE
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -40,46 +40,28 @@
 #include <stdio.h>
 #endif
 
+// Calibration constants:
+// Four gain calibration constants -- alpha, beta, gamma, delta -- can be used to correct the output in
+// reference to a GOLDEN sample. The golden sample should be calibrated under a solar simulator.
+// Setting these to 1.0 essentialy eliminates the "golden"-sample calibration
+const float CALIBRATION_ALPHA_VIS = 1.0; // UVA / UVAgolden
+const float CALIBRATION_BETA_VIS = 1.0;  // UVB / UVBgolden
+const float CALIBRATION_GAMMA_IR = 1.0;  // UVcomp1 / UVcomp1golden
+const float CALIBRATION_DELTA_IR = 1.0;  // UVcomp2 / UVcomp2golden
 
-/** @addtogroup Environmental_Sensor
-* @{
-*/
+// These values are recommended by the "Designing the VEML6075 into an application" app note for 100ms IT
+const float UVA_RESPONSIVITY = 0.001461; // UVAresponsivity
+const float UVB_RESPONSIVITY = 0.002591; // UVBresponsivity
 
-/** @defgroup VEML6075_DRIVER
-* @brief VEML6075 DRIVER
-* @{
-*/
-
-/** @defgroup VEML6075_Imported_Function_Prototypes
-* @{
-*/
+// UV coefficients:
+// These values are recommended by the "Designing the VEML6075 into an application" app note
+const float UVA_VIS_COEF_A = 2.22;
+const float UVA_IR_COEF_B = 1.33;
+const float UVB_VIS_COEF_C = 2.95;
+const float UVB_IR_COEF_D = 1.74;
 
 extern uint8_t Sensor_IO_Write( void *handle, uint8_t WriteAddr, uint8_t *pBuffer, uint16_t nBytesToWrite );
 extern uint8_t Sensor_IO_Read( void *handle, uint8_t ReadAddr, uint8_t *pBuffer, uint16_t nBytesToRead );
-
-/**
-* @}
-*/
-
-/** @defgroup VEML6075_Private_Function_Prototypes
-* @{
-*/
-
-/**
-* @}
-*/
-
-/** @defgroup VEML6075_Private_Functions
-* @{
-*/
-
-/**
-* @}
-*/
-
-/** @defgroup VEML6075_Public_Functions
-* @{
-*/
 
 /*******************************************************************************
 * Function Name : VEML6075_ReadReg
@@ -170,9 +152,9 @@ VEML6075_Error_et VEML6075_DeInit(void *handle)
 * @param  ultraviolet pointer to the returned ultraviolet value in units
 * @retval Error code [VEML6075_OK, VEML6075_ERROR].
 */
-VEML6075_Error_et VEML6075_Get_Measurement(void *handle, uint16_t* ultraviolet)
+VEML6075_Error_et VEML6075_Get_Measurement(void *handle, int16_t* ultraviolet)
 {
-  if ( VEML6075_Get_Ultraviolet( handle, ultraviolet ) == VEML6075_ERROR ) return VEML6075_ERROR;
+  if ( VEML6075_Get_UltravioletIndex( handle, ultraviolet ) == VEML6075_ERROR ) return VEML6075_ERROR;
 
   return VEML6075_OK;
 }
@@ -184,21 +166,31 @@ VEML6075_Error_et VEML6075_Get_Measurement(void *handle, uint16_t* ultraviolet)
 * @param  Pointer to the returned ultraviolet value
 * @retval Error code [VEML6075_OK, VEML6075_ERROR].
 */
-VEML6075_Error_et VEML6075_Get_Ultraviolet(void *handle, uint16_t* value)
+VEML6075_Error_et VEML6075_Get_UltravioletIndex(void *handle, int16_t* value)
 {
-  uint16_t uva_data, uvb_data;
-  uint8_t buffer[2];
+  uint16_t uva_data, uvb_data, visibleComp, irComp;
+  float uvia, uvib, uviaCalc, uvibCalc;
+  uint8_t buffer[2] = {0};
 
-  if(VEML6075_ReadReg(handle, VEML6075_UVA_DATA_REG, 2, buffer))
-    return VEML6075_ERROR;
-  uva_data = ((uint16_t) buffer[0]) | (((uint16_t) buffer[1]) << 8);
-  
-  if(VEML6075_ReadReg(handle, VEML6075_UVB_DATA_REG, 2, buffer))
-    return VEML6075_ERROR;
-  uvb_data = ((uint16_t) buffer[0]) | (((uint16_t) buffer[1]) << 8);
-  
+  if(VEML6075_ReadReg(handle, VEML6075_UVA_DATA_REG, 2, buffer))return VEML6075_ERROR;
+  uva_data = (buffer[0]) | ( buffer[1] << 8);
+
+  if(VEML6075_ReadReg(handle, VEML6075_UVB_DATA_REG, 2, buffer)) return VEML6075_ERROR;
+  uvb_data = (buffer[0]) | (buffer[1] << 8);
+
+  if (VEML6075_Get_UvComp1(handle, &visibleComp) != VEML6075_OK) return VEML6075_ERROR;
+  if (VEML6075_Get_UvComp2(handle, &irComp) != VEML6075_OK) return VEML6075_ERROR;
+
+  // Calculate the simple UVIA and UVIB.
+  uviaCalc = (float)uva_data - ((UVA_VIS_COEF_A * CALIBRATION_ALPHA_VIS * visibleComp) / CALIBRATION_GAMMA_IR) - ((UVA_IR_COEF_B * CALIBRATION_ALPHA_VIS * irComp) / CALIBRATION_DELTA_IR);
+  uvibCalc = (float)uvb_data - ((UVB_VIS_COEF_C * CALIBRATION_BETA_VIS * visibleComp) / CALIBRATION_GAMMA_IR) - ((UVB_IR_COEF_D * CALIBRATION_BETA_VIS * irComp) / CALIBRATION_DELTA_IR);
+
+  // Convert raw UVIA and UVIB to values scaled by the sensor responsivity
+  uvia = uviaCalc * (1.0 / CALIBRATION_ALPHA_VIS) * UVA_RESPONSIVITY;
+  uvib = uvibCalc * (1.0 / CALIBRATION_BETA_VIS) * UVB_RESPONSIVITY;
+
   /* Calculate average value */
-  *value = (uva_data + uvb_data) / 2;
+  *value = (uvia + uvib) / 2;
 
   return VEML6075_OK;
 }
@@ -212,14 +204,15 @@ VEML6075_Error_et VEML6075_Get_Ultraviolet(void *handle, uint16_t* value)
 */
 VEML6075_Error_et VEML6075_Activate(void *handle)
 {
-  uint8_t tmp;
+  uint8_t tmp[2] = {0};
 
-  if(VEML6075_ReadReg(handle, VEML6075_UV_CONF_REG1, 2, &tmp))
+  if(VEML6075_ReadReg(handle, VEML6075_UV_CONF_REG1, 2, tmp))
     return VEML6075_ERROR;
 
-  tmp &= ~VEML6075_SD_MASK;
+  tmp[0] &= ~VEML6075_SD_MASK;
+  tmp[0] |= VEML6075_UV_IT_100MS;
 
-  if(VEML6075_WriteReg(handle, VEML6075_UV_CONF_REG1, 2, &tmp))
+  if(VEML6075_WriteReg(handle, VEML6075_UV_CONF_REG1, 2, tmp))
     return VEML6075_ERROR;
 
   return VEML6075_OK;
@@ -232,14 +225,14 @@ VEML6075_Error_et VEML6075_Activate(void *handle)
 */
 VEML6075_Error_et VEML6075_DeActivate(void *handle)
 {
-  uint8_t tmp;
+  uint8_t tmp[2] = {0};
 
-  if(VEML6075_ReadReg(handle, VEML6075_UV_CONF_REG1, 2, &tmp))
+  if(VEML6075_ReadReg(handle, VEML6075_UV_CONF_REG1, 2, tmp))
     return VEML6075_ERROR;
 
-  tmp |= VEML6075_SD_MASK;
+  tmp[0] |= VEML6075_SD_MASK;
 
-  if(VEML6075_WriteReg(handle, VEML6075_UV_CONF_REG1, 2, &tmp))
+  if(VEML6075_WriteReg(handle, VEML6075_UV_CONF_REG1, 2, tmp))
     return VEML6075_ERROR;
 
   return VEML6075_OK;
@@ -256,16 +249,16 @@ VEML6075_Error_et VEML6075_DeActivate(void *handle)
 */
 VEML6075_Error_et VEML6075_Set_PowerDownMode(void *handle, VEML6075_BitStatus_et status)
 {
-  uint8_t tmp;
+  uint8_t tmp[2]= {0};
 
   VEML6075_assert_param(IS_VEML6075_BitStatus(status));
 
-  if(VEML6075_ReadReg(handle, VEML6075_UV_CONF_REG1, 2, &tmp))
+  if(VEML6075_ReadReg(handle, VEML6075_UV_CONF_REG1, 2, tmp))
     return VEML6075_ERROR;
 
-  tmp |= VEML6075_SD_MASK;
+  tmp[0] |= VEML6075_SD_MASK;
 
-  if(VEML6075_WriteReg(handle, VEML6075_UV_CONF_REG1, 2, &tmp))
+  if(VEML6075_WriteReg(handle, VEML6075_UV_CONF_REG1, 2, tmp))
     return VEML6075_ERROR;
 
   return VEML6075_OK;
@@ -279,16 +272,40 @@ VEML6075_Error_et VEML6075_Set_PowerDownMode(void *handle, VEML6075_BitStatus_et
 */
 VEML6075_Error_et VEML6075_Get_PowerDownMode(void *handle, VEML6075_BitStatus_et* status)
 {
-  uint8_t tmp;
+  uint8_t tmp[2]= {0};
 
-  if(VEML6075_ReadReg(handle, VEML6075_UV_CONF_REG1, 2, &tmp))
+  if(VEML6075_ReadReg(handle, VEML6075_UV_CONF_REG1, 2, tmp))
     return VEML6075_ERROR;
 
-  *status = (VEML6075_BitStatus_et)((tmp & VEML6075_SD_MASK));
+  *status = (VEML6075_BitStatus_et)((tmp[0] & VEML6075_SD_MASK));
 
   return VEML6075_OK;
 }
 
+
+VEML6075_Error_et VEML6075_Get_UvComp1(void *handle, uint16_t *uvComp1)
+{
+    uint8_t raw[2] = {0};
+
+    if(VEML6075_ReadReg(handle, VEML6075_UVCOMP1_DATA_REG, 2, raw))
+        return VEML6075_ERROR;
+
+    *uvComp1 = (raw[0]) | (raw[1] << 8);
+
+    return VEML6075_OK;
+}
+
+VEML6075_Error_et VEML6075_Get_UvComp2(void *handle, uint16_t *uvComp2)
+{
+    uint8_t raw[2] = {0};
+
+    if(VEML6075_ReadReg(handle, VEML6075_UVCOMP2_DATA_REG, 2, raw))
+        return VEML6075_ERROR;
+
+    *uvComp2 = (raw[0]) | (raw[1] << 8);
+
+    return VEML6075_OK;
+}
 
 #ifdef  USE_FULL_ASSERT_VEML6075
 /**

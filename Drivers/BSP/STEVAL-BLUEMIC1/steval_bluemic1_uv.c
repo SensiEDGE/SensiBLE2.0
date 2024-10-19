@@ -91,22 +91,14 @@ DrvStatusTypeDef BSP_ULTRAVIOLET_Init( ULTRAVIOLET_ID_t id, void **handle )
   switch(id)
   {
     case ULTRAVIOLET_SENSORS_AUTO:
-    default:
-    {
-      if( BSP_VEML6075_ULTRAVIOLET_Init(handle)  == COMPONENT_ERROR )
-      {
-        return COMPONENT_ERROR;
-      }
-      break;
-    }
     case VEML6075_0:
-    {
       if( BSP_VEML6075_ULTRAVIOLET_Init(handle)  == COMPONENT_ERROR )
       {
         return COMPONENT_ERROR;
       }
       break;
-    }
+    default:
+      return COMPONENT_ERROR;
   }
 
   return COMPONENT_OK;
@@ -453,7 +445,7 @@ DrvStatusTypeDef BSP_ULTRAVIOLET_Check_WhoAmI( void *handle )
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
-DrvStatusTypeDef BSP_ULTRAVIOLET_Get_Uv( void *handle, uint16_t *ultraviolet )
+DrvStatusTypeDef BSP_ULTRAVIOLET_Get_Uv( void *handle, int16_t *ultraviolet )
 {
 
   DrvContextTypeDef *ctx = (DrvContextTypeDef *)handle;

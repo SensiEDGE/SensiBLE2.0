@@ -162,6 +162,11 @@
 			<locationURI>PARENT-5-PROJECT_LOC/Library/BlueNRG1_Periph_Driver/src/BlueNRG1_wdg.c</locationURI>
 		</link>
 		<link>
+			<name>Library/CCT_algoritm</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>Library/misc.c</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/Library/BlueNRG1_Periph_Driver/src/misc.c</locationURI>
@@ -263,6 +268,31 @@
 		</link>
 		<link>
 			<name>Drivers/BSP/Sensible20</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>Library/CCT_algoritm/STALS.h</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/Library/CCT_algoritm/STALS.h</locationURI>
+		</link>
+		<link>
+			<name>Library/CCT_algoritm/STALS_compat.h</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/Library/CCT_algoritm/STALS_compat.h</locationURI>
+		</link>
+		<link>
+			<name>Library/CCT_algoritm/calculate_cct.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/Library/CCT_algoritm/calculate_cct.c</locationURI>
+		</link>
+		<link>
+			<name>Library/CCT_algoritm/calculate_cct.h</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/Library/CCT_algoritm/calculate_cct.h</locationURI>
+		</link>
+		<link>
+			<name>Library/CCT_algoritm/lib</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
@@ -570,6 +600,21 @@
 			<name>Drivers/BSP/Sensible20/sensible20_steps.h</name>
 			<type>1</type>
 			<locationURI>PARENT-5-PROJECT_LOC/Drivers/BSP/Sensible20/sensible20_steps.h</locationURI>
+		</link>
+		<link>
+			<name>Library/CCT_algoritm/lib/STALS_lib.h</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/Library/CCT_algoritm/lib/STALS_lib.h</locationURI>
+		</link>
+		<link>
+			<name>Library/CCT_algoritm/lib/STALS_lib_platform.h</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/Library/CCT_algoritm/lib/STALS_lib_platform.h</locationURI>
+		</link>
+		<link>
+			<name>Library/CCT_algoritm/lib/VD6283_lib.c</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/Library/CCT_algoritm/lib/VD6283_lib.c</locationURI>
 		</link>
 		<link>
 			<name>Middlewares/ST/BlueNRG-1_BlueVoice_Library/Inc</name>

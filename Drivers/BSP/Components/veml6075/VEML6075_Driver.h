@@ -1,12 +1,12 @@
 /**
  ******************************************************************************
- * @file    VEML6075_Driver.h
+ * @file    VEML6075_Driver.c
  * @version V1.0
- * @date    9-August-2017
- * @brief   VEML6075 driver header file
+ * @date    09-October-2024
+ * @brief   VEML6075 driver file
  ******************************************************************************
  *
- * COPYRIGHT(c) 2019 SensiEDGE
+ * COPYRIGHT(c) 2024 SensiEDGE
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -62,20 +62,6 @@ void VEML6075_assert_failed(uint8_t* file, uint32_t line);
 #else
 #define VEML6075_assert_param(expr) ((void)0)
 #endif /* USE_FULL_ASSERT_VEML6075 */
-
-/** @addtogroup Environmental_Sensor
-* @{
-*/
-
-/** @addtogroup VEML6075_DRIVER
-* @{
-*/
-
-/* Exported Types -------------------------------------------------------------*/
-/** @defgroup VEML6075_Exported_Types
-* @{
-*/
-
 
 /**
 * @brief  Error code type.
@@ -226,79 +212,8 @@ typedef struct
 * @brief Device Identification value.
 */
 #define VEML6075_WHO_AM_I_VAL         (uint8_t)0x26
-
-
 #define VEML6075_UV_CONF_REG1         (uint8_t)0x00
-
-//#define VEML6075_PD_BIT          VEML6075_BIT(7)
-//#define VEML6075_BDU_BIT         VEML6075_BIT(2)
-//#define VEML6075_ODR_BIT         VEML6075_BIT(0)
-//
 #define VEML6075_SD_MASK        (uint8_t)0x01
-//#define VEML6075_BDU_MASK       (uint8_t)0x04
-//#define VEML6075_ODR_MASK       (uint8_t)0x03
-//
-///**
-//* @brief Control register 2.
-//* \code
-//* Read/write
-//* Default value: 0x00
-//* 7 BOOT:  Reboot memory content. 0: normal mode; 1: reboot memory content. Self-cleared upon completation.
-//* 6:2 Reserved.
-//* 1 HEATHER: 0: heater enable; 1: heater disable.
-//* 0 ONE_SHOT: 0: waiting for start of conversion; 1: start for a new dataset. Self-cleared upon completation.
-//* \endcode
-//*/
-//#define VEML6075_CTRL_REG2      (uint8_t)0x21
-//
-//#define VEML6075_BOOT_BIT        VEML6075_BIT(7)
-//#define VEML6075_HEATHER_BIT     VEML6075_BIT(1)
-//#define VEML6075_ONESHOT_BIT     VEML6075_BIT(0)
-//
-//#define VEML6075_BOOT_MASK      (uint8_t)0x80
-//#define VEML6075_HEATHER_MASK   (uint8_t)0x02
-//#define VEML6075_ONE_SHOT_MASK  (uint8_t)0x01
-//
-///**
-//* @brief Control register 3.
-//* \code
-//* Read/write
-//* Default value: 0x00
-//* 7 DRDY_H_L: Interrupt edge. 0: active high, 1: active low.
-//* 6 PP_OD: Push-Pull/OpenDrain selection on interrupt pads. 0: push-pull; 1: open drain.
-//* 5:3 Reserved.
-//* 2 DRDY: interrupt config. 0: disable, 1: enable.
-//* \endcode
-//*/
-//#define VEML6075_CTRL_REG3      (uint8_t)0x22
-//
-//#define VEML6075_DRDY_H_L_BIT    VEML6075_BIT(7)
-//#define VEML6075_PP_OD_BIT       VEML6075_BIT(6)
-//#define VEML6075_DRDY_BIT        VEML6075_BIT(2)
-//
-//#define VEML6075_DRDY_H_L_MASK  (uint8_t)0x80
-//#define VEML6075_PP_OD_MASK     (uint8_t)0x40
-//#define VEML6075_DRDY_MASK      (uint8_t)0x04
-//
-///**
-//* @brief  Status register.
-//* \code
-//* Read
-//* Default value: 0x00
-//* 7:2 Reserved.
-//* 1 H_DA: Humidity data available. 0: new data for humidity is not yet available; 1: new data for humidity is available.
-//* 0 T_DA: Temperature data available. 0: new data for temperature is not yet available; 1: new data for temperature is available.
-//* \endcode
-//*/
-//#define VEML6075_STATUS_REG    (uint8_t)0x27
-//
-//#define VEML6075_H_DA_BIT       VEML6075_BIT(1)
-//#define VEML6075_T_DA_BIT       VEML6075_BIT(0)
-//
-//#define VEML6075_HDA_MASK      (uint8_t)0x02
-//#define VEML6075_TDA_MASK      (uint8_t)0x01
-//
-
 
 /**
 * @brief  UVA_data (LSB_MSB).
@@ -336,17 +251,6 @@ typedef struct
 */
 #define VEML6075_UVCOMP2_DATA_REG       (uint8_t)0x0A
 
-
-/**
-* @}
-*/
-
-
-/**
-* @}
-*/
-
-
 /* Exported Functions -------------------------------------------------------------*/
 /** @defgroup VEML6075_Exported_Functions
 * @{
@@ -360,25 +264,16 @@ VEML6075_Error_et VEML6075_Get_DeviceID(void *handle, uint8_t* deviceid);
 
 VEML6075_Error_et VEML6075_DeInit(void *handle);
 
-VEML6075_Error_et VEML6075_Get_Measurement(void *handle, uint16_t* ultraviolet);
-VEML6075_Error_et VEML6075_Get_Ultraviolet(void *handle, uint16_t* value);
+VEML6075_Error_et VEML6075_Get_Measurement(void *handle, int16_t* ultraviolet);
+VEML6075_Error_et VEML6075_Get_UltravioletIndex(void *handle, int16_t* value);
 VEML6075_Error_et VEML6075_Activate(void *handle);
 VEML6075_Error_et VEML6075_DeActivate(void *handle);
+VEML6075_Error_et VEML6075_Get_UvComp1(void *handle, uint16_t *uvComp1);
+VEML6075_Error_et VEML6075_Get_UvComp2(void *handle, uint16_t *uvComp2);
 
 VEML6075_Error_et VEML6075_Set_PowerDownMode(void *handle, VEML6075_BitStatus_et status);
 VEML6075_Error_et VEML6075_Get_PowerDownMode(void *handle, VEML6075_BitStatus_et* status);
 
-/**
-* @}
-*/
-
-/**
-* @}
-*/
-
-/**
-* @}
-*/
 
 #ifdef __cplusplus
 }

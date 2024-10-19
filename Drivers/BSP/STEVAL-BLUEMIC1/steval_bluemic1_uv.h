@@ -98,7 +98,7 @@ DrvStatusTypeDef BSP_ULTRAVIOLET_IsCombo( void *handle, uint8_t *status );
 DrvStatusTypeDef BSP_ULTRAVIOLET_Get_Instance( void *handle, uint8_t *instance );
 DrvStatusTypeDef BSP_ULTRAVIOLET_Get_WhoAmI( void *handle, uint8_t *who_am_i );
 DrvStatusTypeDef BSP_ULTRAVIOLET_Check_WhoAmI( void *handle );
-DrvStatusTypeDef BSP_ULTRAVIOLET_Get_Uv( void *handle, uint16_t *ultraviolet );
+DrvStatusTypeDef BSP_ULTRAVIOLET_Get_Uv( void *handle, int16_t *ultraviolet );
 DrvStatusTypeDef BSP_ULTRAVIOLET_Get_ODR( void *handle, float *odr );
 DrvStatusTypeDef BSP_ULTRAVIOLET_Set_ODR( void *handle, SensorOdr_t odr );
 DrvStatusTypeDef BSP_ULTRAVIOLET_Set_ODR_Value( void *handle, float odr );

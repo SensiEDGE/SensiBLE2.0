@@ -81,7 +81,7 @@ LUX_StatusTypeDef BSP_LUX_Init(void)
 {
     if (!LuxInitialized)
     {
-        uint8_t gain = 0x01; // gain = 3;
+        uint8_t gain = 0x00; // gain = 1;
         uint8_t meas_rate = 0x22; // 18bit, 100 mS
 
         if (APDS9250_IO_Init() != LUX_OK)
@@ -114,8 +114,8 @@ uint8_t BSP_LUX_IsInitalized(void)
 
 LUX_StatusTypeDef BSP_LUX_PowerON(void)
 {
-    uint8_t main_ctrl = 0x02; // ALS, active
-    //uint8_t main_ctrl = 0x06; // RGB, active
+    //uint8_t main_ctrl = 0x02; // ALS, active
+    uint8_t main_ctrl = 0x06; // RGB, active
     return APDS9250_IO_Write(APDS9250_REG_MAIN_CTRL, &main_ctrl, 1);
 }
 
@@ -125,7 +125,6 @@ LUX_StatusTypeDef BSP_LUX_PowerOFF(void)
     uint8_t main_ctrl = 0;
     return APDS9250_IO_Write(APDS9250_REG_MAIN_CTRL, &main_ctrl, 1);
 }
-
 
 uint8_t BSP_LUX_IsDataReady(void)
 {
@@ -141,36 +140,51 @@ uint8_t BSP_LUX_IsDataReady(void)
     return (main_status & 0x08) ? 1 : 0;
 }
 
-
 LUX_StatusTypeDef BSP_LUX_GetValue(uint16_t *pData)
 {
     LUX_StatusTypeDef ret;
     uint8_t adc_data[6];
+    const float ratio=1;
+    const float factor_Incan=35.0;
+    const float factor_Non_Incan=46.0;
+	const float gain = 1.0;
+	const float tInteg = 100.0;
 
-    ret = APDS9250_IO_Read(APDS9250_REG_DATA_IR_0, adc_data, 6);
+    ret = APDS9250_IO_Read(APDS9250_REG_DATA_IR_0, adc_data, sizeof(adc_data));
     if (ret == LUX_OK)
     {
-        uint32_t ir_value    = adc_data[0] | (adc_data[1] << 8) | (adc_data[2] << 16);
+        uint32_t ir_value = adc_data[0] | (adc_data[1] << 8) | (adc_data[2] << 16);
         uint32_t green_value = adc_data[3] | (adc_data[4] << 8) | (adc_data[5] << 16);
 
-        uint32_t factor = ir_value > green_value ? 35 : 46;
-
-        uint32_t lux = ((green_value * factor) / 3) / 100;
-        *pData = (uint16_t)lux;
+		if ((ir_value/ green_value) > ratio) {
+			*pData = (green_value/(gain*tInteg)) * factor_Incan;
+		} else {
+			*pData = (green_value/(gain*tInteg)) * factor_Non_Incan;
+		}
     }
 
     return ret;
 }
 
+LUX_StatusTypeDef BSP_RGB_GetValue(uint32_t* red, uint32_t* green, uint32_t* blue)
+{
+    LUX_StatusTypeDef ret;
+    uint8_t adc_data[9];
 
+    ret = APDS9250_IO_Read(APDS9250_REG_DATA_GREEN_0, adc_data, sizeof(adc_data));
+
+    if (ret == LUX_OK)
+    {
+    	 *green = adc_data[0] | (adc_data[1] << 8) | (adc_data[2] << 16);
+    	 *blue = adc_data[3] | (adc_data[4] << 8) | (adc_data[5] << 16);
+    	 *red = adc_data[6] | (adc_data[7] << 8) | (adc_data[8] << 16);
+    }
+
+    return ret;
+}
 
 LUX_StatusTypeDef APDS9250_IO_Init(void)
 {
-    // // Init I2C
-    // if(I2C_Global_Init() != HAL_OK)
-    // {
-    //     return LUX_ERROR;
-    // }
     return LUX_OK;
 }
 

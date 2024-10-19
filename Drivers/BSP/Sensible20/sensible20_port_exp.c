@@ -64,11 +64,8 @@ static uint8_t PE_SetPull(uint8_t pins, PE_PullUpDn_t val);
 void PE_Init(PE_Addr_t addr, PE_InitStruct_t* conf)
 {
     static uint8_t isInitialized = 0;
-    if(isInitialized == 0){
-        isInitialized = 1;
-        PE_WriteReg(PE_RegIrqMask, 0xFF);
-    }
-    
+    uint8_t regval = 0;
+
     if(addr == PE_Addr0 ||
        addr == PE_Addr1) {
            PE_State.address = addr;
@@ -77,8 +74,11 @@ void PE_Init(PE_Addr_t addr, PE_InitStruct_t* conf)
            return;
        }
     
-   uint8_t regval = 0;
-   
+    if(isInitialized == 0){
+        isInitialized = 1;
+        PE_WriteReg(PE_RegIrqMask, 0xFF);
+    }
+
    if(0 == PE_ReadReg(PE_RegId, &regval)) {
        return;
    }

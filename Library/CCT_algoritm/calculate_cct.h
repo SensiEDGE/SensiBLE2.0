@@ -1,10 +1,12 @@
 /**
  ******************************************************************************
- * @file    steval_bluemic1_lux.h
- * @brief   apds9250 driver header file.
+ * @file    calculate_cct.h
+ * @version V1.0
+ * @date    09-October-2024
+ * @brief   get cct value
  ******************************************************************************
  *
- * COPYRIGHT(c) 2019 SensiEDGE
+ * COPYRIGHT(c) 2024 SensiEDGE
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
@@ -30,32 +32,27 @@
  *
  ******************************************************************************
  */
-
-#ifndef __SIMBA_LUX_H__
-#define __SIMBA_LUX_H__
+#ifndef __CALCULATE_CCT_H
+#define __CALCULATE_CCT_H
 
 #include <stdint.h>
+#include <inttypes.h>
+#include <unistd.h>
+#include <assert.h>
+#include <stdio.h>
 
-typedef enum
-{
-  LUX_OK = 0,
-  LUX_ERROR = 1,
-  LUX_TIMEOUT = 2,
-  LUX_NOT_IMPLEMENTED = 3
-} LUX_StatusTypeDef;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/**
+* @brief  Get value cct
+* @retval cct value.
+*/
+uint16_t get_cct(void);
 
-LUX_StatusTypeDef   BSP_LUX_Init(void);
-uint8_t             BSP_LUX_IsInitalized(void);
+#ifdef __cplusplus
+}
+#endif
 
-LUX_StatusTypeDef   BSP_LUX_PowerON(void);
-LUX_StatusTypeDef   BSP_LUX_PowerOFF(void);
-
-uint8_t             BSP_LUX_IsDataReady(void);
-LUX_StatusTypeDef   BSP_LUX_GetValue(uint16_t *pData);
-LUX_StatusTypeDef   BSP_RGB_GetValue(uint32_t* red, uint32_t* green, uint32_t* blue);
-
-
-#endif //__SIMBA_LUX_H__
-
-/************************ (C) COPYRIGHT SensiEdge *****************************/
+#endif /* __CALCULATE_CCT_H */

@@ -67,7 +67,7 @@ typedef struct
   DrvStatusTypeDef ( *Sensor_Disable  ) ( DrvContextTypeDef* );
   DrvStatusTypeDef ( *Get_WhoAmI      ) ( DrvContextTypeDef*, uint8_t* );
   DrvStatusTypeDef ( *Check_WhoAmI    ) ( DrvContextTypeDef* );
-  DrvStatusTypeDef ( *Get_Uv          ) ( DrvContextTypeDef*, uint16_t* );
+  DrvStatusTypeDef ( *Get_Uv          ) ( DrvContextTypeDef*, int16_t* );
   DrvStatusTypeDef ( *Read_Reg        ) ( DrvContextTypeDef*, uint8_t, uint8_t* );
   DrvStatusTypeDef ( *Write_Reg       ) ( DrvContextTypeDef*, uint8_t, uint8_t );
 } ULTRAVIOLET_Drv_t;

@@ -74,9 +74,9 @@ void flushAcceleroFifo(void *handle)
 {
     //clear buffer
     memset(accValues, 0x00, sizeof(accValues));
-    
+
     BSP_ACCELERO_FIFO_Get_Data_Ext(handle, accValues, LIS2DW12_FIFO_SIZE);
-    
+
     filterData(accValues, LIS2DW12_FIFO_SIZE, KALMAN_COEFF);
 }
 
@@ -95,9 +95,9 @@ BOOL lookForSteps(void)
 
     for(uint8_t i = 0; i < LIS2DW12_FIFO_SIZE; i++){
         uint8_t tmp = ProcessSteps(accValues[i]);
-        
+
         tmpSamplesCounter += 1;
-        
+
         if(tmp != 0){
             tmpSamplesCounter = 0;
             if(tmpStepsCounter >= 7){
@@ -137,7 +137,7 @@ BOOL lookForTilt(void)
             tiltFound = TRUE;
         }
     }
-    
+
     return tiltFound;
 }
 
@@ -167,19 +167,19 @@ static void filterData(SensorAxes_t* data, uint8_t size, float coeff)
     static int32_t oldX = 0;
     static int32_t oldY = 0;
     static int32_t oldZ = 0;
-    
+
     if(firstIteration){
         firstIteration = 0;
         oldX = data[0].AXIS_X;
         oldY = data[0].AXIS_Y;
         oldZ = data[0].AXIS_Z;
     }
-    
+
     for(uint8_t i = 0; i < size; i++){
         data[i].AXIS_X = (int32_t)((float)(coeff * data[i].AXIS_X) + (float)((1 - coeff) * oldX));
         data[i].AXIS_Y = (int32_t)((float)(coeff * data[i].AXIS_Y) + (float)((1 - coeff) * oldY));
         data[i].AXIS_Z = (int32_t)((float)(coeff * data[i].AXIS_Z) + (float)((1 - coeff) * oldZ));
-        
+
         oldX = data[i].AXIS_X;
         oldY = data[i].AXIS_Y;
         oldZ = data[i].AXIS_Z;
@@ -198,25 +198,25 @@ static BOOL processTilt(SensorAxes_t data)
     static float startPositionX = 0.0f;
     static float startPositionY = 0.0f;
     static float startPositionZ = 0.0f;
-    
+
     static uint32_t startTimeStamp = 0;
     static BOOL waiting = FALSE;
-    
+
     BOOL result = FALSE;
-    
+
     //calculating angle
     float currentX = (float)asin(data.AXIS_X / 1000.0f);
     float currentY = (float)asin(data.AXIS_Y / 1000.0f);
     float currentZ = (float)acos(data.AXIS_Z / 1000.0f);
-    
+
     if(firstIteration){
         firstIteration = 0;
         startPositionX = currentX;
         startPositionY = currentY;
         startPositionZ = currentZ;
     }
-    
-    if(comparePosition(currentX, startPositionX, TILT_ANGLE) || 
+
+    if(comparePosition(currentX, startPositionX, TILT_ANGLE) ||
        comparePosition(currentY, startPositionY, TILT_ANGLE) ||
        comparePosition(currentZ, startPositionZ, TILT_ANGLE))
     {
@@ -238,13 +238,13 @@ static BOOL processTilt(SensorAxes_t data)
     } else {
         waiting = FALSE;
     }
-    
+
     if(result){
         startPositionX = currentX;
         startPositionY = currentY;
         startPositionZ = currentZ;
     }
-    
+
     return result;
 }
 

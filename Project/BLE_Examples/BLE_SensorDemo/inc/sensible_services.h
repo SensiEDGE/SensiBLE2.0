@@ -33,21 +33,21 @@ void sensible_aci_gatt_attribute_modified_event(uint16_t Connection_Handle,
                                                 uint8_t Attr_Data[]);
 
 tBleStatus Add_Console_Service(void);
-
-tBleStatus Add_Environmental_Sensor_Service(void);
+uint16_t GetHWServW2STHandle(void);
 tBleStatus Add_HW_SW_ServW2ST_Service(void);
 
 tBleStatus EnvironmentalUpdate(void);
-//tBleStatus LuxUpdate(void);
-tBleStatus CoLuxUpdate(void);
+tBleStatus LuxUpdate(void);
+tBleStatus ColorAmbientLightUpdate(void);
 
-tBleStatus AccEvent_Notify(uint16_t Command, uint8_t dimByte);
+tBleStatus AccEvent_Notifi(uint8_t event);
+tBleStatus AccEventSteps_Notify(uint8_t event, uint16_t steps);
+tBleStatus AccEventSteps_Notifi(uint16_t steps);
 tBleStatus Config_Notify(uint32_t Feature, uint8_t Command, uint8_t val);
 tBleStatus ECompass_Update(uint16_t Angle);
+tBleStatus BatUpdate(void);
+tBleStatus LedUpdate(Led_TypeDef led);
 
-
-void LedUpdate(Led_TypeDef led);
-void BatUpdate();
 
 /**
 * @brief  User function that is called when 1 ms of PDM data is available.
@@ -56,7 +56,7 @@ void BatUpdate();
 */
 void AudioProcess(uint16_t* PCM_Buffer);
 
-void MicLevelUpdate();
+void MicLevelUpdate(void);
                                                 
 void UpdateAll(void);
 

@@ -1,18 +1,24 @@
 # **SensiBLE-2.0**
 
 ## 1 Build
-For build [IAR ver. EWARM-CD-8222-15996](https://www.iar.com/) is used.
+For build [STM32CubeIDE Version: 1.14.0(https://www.st.com/en/development-tools/stm32cubeide.html)] is used.
 
 ## 2 Bootloader
 SensiBLE-2.0 uses bootloader [Bootloader.bin](binary/Bootloader.bin)
 
 ## 3 Firmware
-- [SensiBLE-2.0-revC1-SW-OTA.bin](binary/SensiBLE-2.0-revC1-SW-OTA.bin) - firmware for downloading over BLE with "[ST BLE Sensor](https://www.st.com/en/embedded-software/stblesensor.html)".
-- [SensiBLE-2.0-revC1-SW-OTA-BT.bin](binary/SensiBLE-2.0-revC1-SW-OTA-BT.bin) - firmware for downloading with "[BlueNRG-1 ST-Link Utility](https://www.st.com/en/embedded-software/stsw-bnrg1stlink.html)"
+- [SensiBLE-2.0-V2.3.1-OTA-.bin](binary/SensiBLE-2.0-V2.3.1-OTA.bin) - firmware for downloading over BLE with "[ST BLE Sensor](https://www.st.com/en/embedded-software/stblesensor.html)".
+- [SensiBLE-2.0-V2.3.1-OTA-BT.bin](binary/SensiBLE-2.0-V2.3.1-OTA-BT.bin) - firmware for downloading with "[BlueNRG-1 ST-Link Utility](https://www.st.com/en/embedded-software/stsw-bnrg1stlink.html)"
 
-## 4 License
+## 4 Firmware Version 2.3.1
+- Add Color Ambient Light BLE characteristic
+- Add calculating UV index, Color Ambient Light
+- Update Acc EVENT logic
+- Corrected the formula for calculating LUX
 
-**COPYRIGHT(c) 2019 SensiEDGE LTD**
+## 5 License
+
+**COPYRIGHT(c) 2024 SensiEDGE **
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:

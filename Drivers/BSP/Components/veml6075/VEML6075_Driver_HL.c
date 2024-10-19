@@ -61,7 +61,7 @@ static DrvStatusTypeDef VEML6075_Sensor_Enable( DrvContextTypeDef *handle );
 static DrvStatusTypeDef VEML6075_Sensor_Disable( DrvContextTypeDef *handle );
 static DrvStatusTypeDef VEML6075_U_Get_WhoAmI( DrvContextTypeDef *handle, uint8_t *who_am_i );
 static DrvStatusTypeDef VEML6075_U_Check_WhoAmI( DrvContextTypeDef *handle );
-static DrvStatusTypeDef VEML6075_Get_Uv( DrvContextTypeDef *handle, uint16_t *ultraviolet );
+static DrvStatusTypeDef VEML6075_Get_UvIndex( DrvContextTypeDef *handle, int16_t *ultravioletIndex );
 static DrvStatusTypeDef VEML6075_Read_Reg( DrvContextTypeDef *handle, uint8_t reg, uint8_t *data );
 static DrvStatusTypeDef VEML6075_Write_Reg( DrvContextTypeDef *handle, uint8_t reg, uint8_t data );
 static DrvStatusTypeDef VEML6075_Get_WhoAmI( DrvContextTypeDef *handle, uint8_t *who_am_i );
@@ -94,7 +94,7 @@ ULTRAVIOLET_Drv_t VEML6075_Drv =
   VEML6075_Sensor_Disable,
   VEML6075_U_Get_WhoAmI,
   VEML6075_U_Check_WhoAmI,
-  VEML6075_Get_Uv,
+  VEML6075_Get_UvIndex,
   VEML6075_Read_Reg,
   VEML6075_Write_Reg
 };
@@ -173,9 +173,9 @@ static DrvStatusTypeDef VEML6075_U_Check_WhoAmI( DrvContextTypeDef *handle )
  * @retval COMPONENT_OK in case of success
  * @retval COMPONENT_ERROR in case of failure
  */
-static DrvStatusTypeDef VEML6075_Get_Uv( DrvContextTypeDef *handle, uint16_t *ultraviolet )
+static DrvStatusTypeDef VEML6075_Get_UvIndex( DrvContextTypeDef *handle, int16_t *ultravioletIndex )
 {
-  return (DrvStatusTypeDef)VEML6075_Get_Ultraviolet( (void*) handle, ultraviolet );
+  return (DrvStatusTypeDef)VEML6075_Get_UltravioletIndex( (void*) handle, ultravioletIndex);
 }
 
 
@@ -274,19 +274,18 @@ static DrvStatusTypeDef VEML6075_Get_WhoAmI( DrvContextTypeDef *handle, uint8_t 
  */
 static DrvStatusTypeDef VEML6075_Check_WhoAmI( DrvContextTypeDef *handle )
 {
+  uint8_t who_am_i[2] = {0};
 
-  uint8_t who_am_i = 0x00;
-
-  if ( VEML6075_Get_WhoAmI( handle, &who_am_i ) == COMPONENT_ERROR )
+  if ( VEML6075_Get_WhoAmI( handle, who_am_i ) == COMPONENT_ERROR )
   {
     return COMPONENT_ERROR;
   }
-  if ( who_am_i != handle->who_am_i )
+  if (handle->who_am_i == who_am_i[0])
   {
-    return COMPONENT_ERROR;
+    return COMPONENT_OK;
   }
 
-  return COMPONENT_OK;
+  return COMPONENT_ERROR;
 }
 
 

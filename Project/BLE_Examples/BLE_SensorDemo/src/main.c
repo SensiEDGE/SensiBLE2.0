@@ -155,7 +155,7 @@ int main(void)
   }
   
   /* BlueVoice profile Initialization */
-  ret = BV_APP_profile_init(AUDIO_SAMPLING_FREQUENCY);  
+  ret = BV_APP_profile_init(AUDIO_SAMPLING_FREQUENCY);
   if(ret != APP_SUCCESS)
   {
     PRINTF("Error in BV_APP_profile_init(AUDIO_SAMPLING_FREQUENCY) 0x%02x\r\n", ret);
@@ -199,7 +199,7 @@ int main(void)
   SensorsEnable();
   InertialEnable();
   InitHWFeatures();
-  
+
   DeinitAll();
   
   PER_APP_Advertise();

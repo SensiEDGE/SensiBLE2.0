@@ -5,13 +5,9 @@
 #include "sensible_services.h"
 #include "LIS2DW12_ACC_driver.h"
 #include "acceleroSamplesProcessing.h"
-
+#include "main.h"
 /* Exported variables ---------------------------------------------------------*/
 uint32_t HWAdvanceFeaturesStatus = 0;
-
-/* Private Variables -------------------------------------------------------------*/
-static float DefaultAccODR;
-static BOOL MultipleAccEventEnabled = 0;
 
 static void processAccFifo(void);
 static void processAccEvents(void);
@@ -38,43 +34,8 @@ void HWFeaturesCallback(uint8_t irqPin)
 void InitHWFeatures(void)
 {
     /* Read the Default Output Data Rate for Accelerometer */
-    BSP_ACCELERO_Get_ODR(ACCELERO_handle, &DefaultAccODR);
-}
-
-/**
-  * @brief  This function disables all the HW's Features
-  * @param  None
-  * @retval None
-  */
-void DisableHWFeatures(void)
-{
-    if(W2ST_CHECK_HW_FEATURE(W2ST_HWF_PEDOMETER)) {
-        DisableSWPedometer();
-    }
-    
-    if(W2ST_CHECK_HW_FEATURE(W2ST_HWF_TILT)){
-        DisableSWTilt();
-    }
-    
-    if(W2ST_CHECK_HW_FEATURE(W2ST_HWF_FREE_FALL)) {
-        DisableHWFreeFall();
-    }
-
-    if(W2ST_CHECK_HW_FEATURE(W2ST_HWF_DOUBLE_TAP)) {
-        DisableHWDoubleTap();
-    }
-
-    if(W2ST_CHECK_HW_FEATURE(W2ST_HWF_SINGLE_TAP)) {
-        DisableHWSingleTap();
-    }
-
-    if(W2ST_CHECK_HW_FEATURE(W2ST_HWF_WAKE_UP)) {
-        DisableHWWakeUp();
-    }
-    
-    if(W2ST_CHECK_HW_FEATURE(W2ST_HWF_6DORIENTATION)) {
-        DisableHWOrientation6D();
-    }
+	BSP_ACCELERO_Sensor_Enable(ACCELERO_handle);
+    BSP_ACCELERO_Set_ODR(ACCELERO_handle, ODR_MID_HIGH);
 }
 
 /**
@@ -100,8 +61,10 @@ void EnableSWPedometer(void)
         goto fail;
     }
     
-    W2ST_ON_HW_FEATURE(W2ST_HWF_PEDOMETER);
-    
+    AccEventSteps_Notify(ACC_PEDOMETER, GetStepSWPedometer());
+    //Only for ST BLE Sensor Classic
+    AccEventSteps_Notifi(GetStepSWPedometer());
+
 fail: return;
 }
 
@@ -116,8 +79,6 @@ void DisableSWPedometer(void)
     
     BSP_ACCELERO_FIFO_Set_Mode_Ext(ACCELERO_handle, LIS2DW12_ACC_FMODE_BYPASS);
     BSP_ACCELERO_FIFO_Set_INT2_FIFO_Treshold_Ext(ACCELERO_handle, DISABLE);
-    /* Set the Output Data Rate to Default value */
-    BSP_ACCELERO_Set_ODR_Value(ACCELERO_handle, DefaultAccODR);
 }
 
 /**
@@ -162,9 +123,7 @@ void EnableSWTilt(void)
     if(BSP_ACCELERO_FIFO_Set_Mode_Ext(ACCELERO_handle, LIS2DW12_ACC_FMODE_STREAM) != COMPONENT_OK){
         goto fail;
     }
-    
-    W2ST_ON_HW_FEATURE(W2ST_HWF_TILT);
-    
+
 fail: return;
 }
 
@@ -179,8 +138,6 @@ void DisableSWTilt(void)
     
     BSP_ACCELERO_FIFO_Set_Mode_Ext(ACCELERO_handle, LIS2DW12_ACC_FMODE_BYPASS);
     BSP_ACCELERO_FIFO_Set_INT2_FIFO_Treshold_Ext(ACCELERO_handle, DISABLE);
-    /* Set the Output Data Rate to Default value */
-    BSP_ACCELERO_Set_ODR_Value(ACCELERO_handle, DefaultAccODR);
 }
 
 /**
@@ -190,15 +147,14 @@ void DisableSWTilt(void)
   */
 void EnableHWOrientation6D(void)
 {
-    /* Disable all the HW features before */
-    if(!MultipleAccEventEnabled){
-        DisableHWFeatures();
-    }
-    
     /* Enable 6D orientation detection */
-    if(BSP_ACCELERO_Enable_6D_Orientation_Ext(ACCELERO_handle) == COMPONENT_OK){
-        W2ST_ON_HW_FEATURE(W2ST_HWF_6DORIENTATION);
-    }
+    BSP_ACCELERO_Enable_6D_Orientation_Ext(ACCELERO_handle);
+
+    AccEventType orientation = GetHWOrientation6D();
+    AccEventSteps_Notify(orientation, GetStepSWPedometer());
+    //Only for ST BLE Sensor Classic
+    DelayMs(10);
+	AccEvent_Notifi(orientation);
 }
 
 /**
@@ -209,12 +165,8 @@ void EnableHWOrientation6D(void)
 void DisableHWOrientation6D(void)
 {
     /* Disable 6D orientation detection */
-    if(BSP_ACCELERO_Disable_6D_Orientation_Ext(ACCELERO_handle) == COMPONENT_OK){
-        W2ST_OFF_HW_FEATURE(W2ST_HWF_6DORIENTATION);
-    }
-    
-    /* Set the Output Data Rate to Default value */
-    BSP_ACCELERO_Set_ODR_Value(ACCELERO_handle, DefaultAccODR);
+    BSP_ACCELERO_Disable_6D_Orientation_Ext(ACCELERO_handle);
+    W2ST_OFF_HW_FEATURE(W2ST_HWF_6DORIENTATION);
 }
 
 /**
@@ -284,14 +236,8 @@ fail: return ACC_NOT_USED;
   */
 void EnableHWWakeUp(void)
 {
-    /* Disable all the HW features before */
-    if(!MultipleAccEventEnabled){
-        DisableHWFeatures();
-    }
     /* Enable Wake up detection */
-    if(BSP_ACCELERO_Enable_Wake_Up_Detection_Ext(ACCELERO_handle) == COMPONENT_OK){
-        W2ST_ON_HW_FEATURE(W2ST_HWF_WAKE_UP);
-    }
+    BSP_ACCELERO_Enable_Wake_Up_Detection_Ext(ACCELERO_handle);
 }
 
 /**
@@ -302,12 +248,8 @@ void EnableHWWakeUp(void)
 void DisableHWWakeUp(void)
 {
     /* Disable Wake up detection */
-    if(BSP_ACCELERO_Disable_Wake_Up_Detection_Ext(ACCELERO_handle) == COMPONENT_OK){
-        W2ST_OFF_HW_FEATURE(W2ST_HWF_WAKE_UP);
-    }
-
-    /* Set the Output Data Rate to Default value */
-    BSP_ACCELERO_Set_ODR_Value(ACCELERO_handle, DefaultAccODR);
+    BSP_ACCELERO_Disable_Wake_Up_Detection_Ext(ACCELERO_handle);
+    W2ST_OFF_HW_FEATURE(W2ST_HWF_WAKE_UP);
 }
 
 /**
@@ -317,16 +259,10 @@ void DisableHWWakeUp(void)
   */
 void EnableHWFreeFall(void)
 {
-    /* Disable all the HW features before */
-    if(!MultipleAccEventEnabled){
-        DisableHWFeatures();
-    }
-    
     /* Enable Free Fall detection */
-    if(BSP_ACCELERO_Enable_Free_Fall_Detection_Ext(ACCELERO_handle) == COMPONENT_OK){
-        W2ST_ON_HW_FEATURE(W2ST_HWF_FREE_FALL);
-        BSP_ACCELERO_Set_Free_Fall_Threshold_Ext(ACCELERO_handle, LIS2DW12_ACC_FF_THS_7);
-    } 
+    BSP_ACCELERO_Enable_Free_Fall_Detection_Ext(ACCELERO_handle);
+    BSP_ACCELERO_Set_Free_Fall_Threshold_Ext(ACCELERO_handle, LIS2DW12_ACC_FF_THS_7);
+
 }
 
 /**
@@ -337,12 +273,8 @@ void EnableHWFreeFall(void)
 void DisableHWFreeFall(void)
 {
     /* Disable Free Fall detection */
-    if(BSP_ACCELERO_Disable_Free_Fall_Detection_Ext(ACCELERO_handle) == COMPONENT_OK){
-        W2ST_OFF_HW_FEATURE(W2ST_HWF_FREE_FALL);
-    }
-
-    /* Set the Output Data Rate to Default value */
-    BSP_ACCELERO_Set_ODR_Value(ACCELERO_handle, DefaultAccODR);
+    BSP_ACCELERO_Disable_Free_Fall_Detection_Ext(ACCELERO_handle);
+	W2ST_OFF_HW_FEATURE(W2ST_HWF_FREE_FALL);
 }
 
 /**
@@ -352,15 +284,8 @@ void DisableHWFreeFall(void)
   */
 void EnableHWDoubleTap(void)
 {
-    /* Disable all the HW features before */
-    if(!MultipleAccEventEnabled){
-        DisableHWFeatures();
-    }
-
     /* Enable Double Tap detection */
-    if(BSP_ACCELERO_Enable_Double_Tap_Detection_Ext(ACCELERO_handle) == COMPONENT_OK){
-        W2ST_ON_HW_FEATURE(W2ST_HWF_DOUBLE_TAP);
-    }
+    BSP_ACCELERO_Enable_Double_Tap_Detection_Ext(ACCELERO_handle);
 }
 
 /**
@@ -371,12 +296,8 @@ void EnableHWDoubleTap(void)
 void DisableHWDoubleTap(void)
 {
     /* Disable Double Tap detection */
-    if(BSP_ACCELERO_Disable_Double_Tap_Detection_Ext(ACCELERO_handle) == COMPONENT_OK){
-        W2ST_OFF_HW_FEATURE(W2ST_HWF_DOUBLE_TAP);
-    }
-
-    /* Set the Output Data Rate to Default value */
-    BSP_ACCELERO_Set_ODR_Value(ACCELERO_handle, DefaultAccODR);
+    BSP_ACCELERO_Disable_Double_Tap_Detection_Ext(ACCELERO_handle);
+    W2ST_OFF_HW_FEATURE(W2ST_HWF_DOUBLE_TAP);
 }
 
 /**
@@ -386,15 +307,8 @@ void DisableHWDoubleTap(void)
   */
 void EnableHWSingleTap(void)
 {
-    /* Disable all the HW features before */
-    if(!MultipleAccEventEnabled){
-        DisableHWFeatures();
-    }
-    
     /* Enable Single Tap detection */
-    if(BSP_ACCELERO_Enable_Single_Tap_Detection_Ext(ACCELERO_handle) == COMPONENT_OK){
-        W2ST_ON_HW_FEATURE(W2ST_HWF_SINGLE_TAP);
-    }  
+    BSP_ACCELERO_Enable_Single_Tap_Detection_Ext(ACCELERO_handle);
 }
 
 /**
@@ -405,12 +319,8 @@ void EnableHWSingleTap(void)
 void DisableHWSingleTap(void)
 {
     /* Disable Single Tap detection */
-    if(BSP_ACCELERO_Disable_Single_Tap_Detection_Ext(ACCELERO_handle) == COMPONENT_OK){
-        W2ST_OFF_HW_FEATURE(W2ST_HWF_SINGLE_TAP);
-    }
-    
-    /* Set the Output Data Rate to Default value */
-    BSP_ACCELERO_Set_ODR_Value(ACCELERO_handle, DefaultAccODR);
+    BSP_ACCELERO_Disable_Single_Tap_Detection_Ext(ACCELERO_handle);
+    W2ST_OFF_HW_FEATURE(W2ST_HWF_SINGLE_TAP);
 }
 
 /**
@@ -420,12 +330,7 @@ void DisableHWSingleTap(void)
   */
 void EnableHWMultipleEvents(void)
 {
-    DisableHWFeatures();
-
-    BSP_ACCELERO_Sensor_Enable(ACCELERO_handle);
-    
-    MultipleAccEventEnabled = TRUE;
-
+	ResetSWPedometer();
     EnableHWFreeFall();
     EnableHWOrientation6D();
     
@@ -433,15 +338,9 @@ void EnableHWMultipleEvents(void)
     /* It depends on the Accelero features */
     EnableHWSingleTap();
     EnableHWDoubleTap();
-
-//    EnableHWWakeUp();
-    
+    EnableHWWakeUp();
     EnableSWPedometer();
     EnableSWTilt();
-    
-    AccEvent_Notify(GetStepSWPedometer(), 3);
-    
-    W2ST_ON_HW_FEATURE(W2ST_HWF_MULTIPLE_EVENTS);
 }
 
 /**
@@ -451,11 +350,15 @@ void EnableHWMultipleEvents(void)
   */
 void DisableHWMultipleEvents(void)
 {
-    DisableHWFeatures();
-    MultipleAccEventEnabled = FALSE;
+	DisableSWPedometer();
+	DisableSWTilt();
+	DisableHWFreeFall();
+	DisableHWDoubleTap();
+	DisableHWSingleTap();
+	DisableHWWakeUp();
+	DisableHWOrientation6D();
+
     W2ST_OFF_HW_FEATURE(W2ST_HWF_MULTIPLE_EVENTS);
-    
-    BSP_ACCELERO_Sensor_Disable(ACCELERO_handle);
 }
 
 static void processAccEvents(void)
@@ -463,13 +366,18 @@ static void processAccEvents(void)
     uint8_t intSrcReg = 0;
     
     BSP_ACCELERO_Read_All_Int_Src_Register_Ext(ACCELERO_handle, &intSrcReg);
-    
+
     if((W2ST_CHECK_HW_FEATURE(W2ST_HWF_FREE_FALL)) ||
        (W2ST_CHECK_HW_FEATURE(W2ST_HWF_MULTIPLE_EVENTS)))
     {
         /* Check if the Free Fall interrupt flag is set */
         if(intSrcReg & ALL_INT_REG_FF_IA){
-            AccEvent_Notify(ACC_FREE_FALL, 2);
+        	AccEventSteps_Notify(ACC_FREE_FALL, GetStepSWPedometer());
+
+            if (W2ST_CHECK_HW_FEATURE(W2ST_HWF_FREE_FALL)) {
+    			//Only for ST BLE Sensor Classic
+                AccEvent_Notifi(ACC_FREE_FALL);
+            }
         }
     }
     
@@ -478,7 +386,12 @@ static void processAccEvents(void)
     {
         /* Check if the Double Tap interrupt flag is set */
         if(intSrcReg & ALL_INT_REG_DOUBLE_TAP){
-            AccEvent_Notify(ACC_DOUBLE_TAP, 2);
+        	AccEventSteps_Notify(ACC_DOUBLE_TAP, GetStepSWPedometer());
+
+            if (W2ST_CHECK_HW_FEATURE(W2ST_HWF_DOUBLE_TAP)) {
+    			//Only for ST BLE Sensor Classic
+                AccEvent_Notifi(ACC_DOUBLE_TAP);
+            }
         }
     }
     
@@ -487,7 +400,12 @@ static void processAccEvents(void)
     {
         /* Check if the Single Tap interrupt flag is set */
         if(intSrcReg & ALL_INT_REG_SINGLE_TAP){
-            AccEvent_Notify(ACC_SINGLE_TAP, 2);
+        	AccEventSteps_Notify(ACC_SINGLE_TAP, GetStepSWPedometer());
+
+            if (W2ST_CHECK_HW_FEATURE(W2ST_HWF_SINGLE_TAP)) {
+    			//Only for ST BLE Sensor Classic
+                AccEvent_Notifi(ACC_SINGLE_TAP);
+            }
         }
     }
     
@@ -497,16 +415,26 @@ static void processAccEvents(void)
         /* Check if the 6D Orientation interrupt flag is set */
         if(intSrcReg & ALL_INT_REG_6D_IA){
             AccEventType orientation = GetHWOrientation6D();
-            AccEvent_Notify(orientation, 2);
+            AccEventSteps_Notify(orientation, GetStepSWPedometer());
+
+            if (W2ST_CHECK_HW_FEATURE(W2ST_HWF_6DORIENTATION)) {
+    			//Only for ST BLE Sensor Classic
+                AccEvent_Notifi(orientation);
+            }
         }
     }
 
-//    if(W2ST_CHECK_HW_FEATURE(W2ST_HWF_WAKE_UP)) {
-//        /* Check if the Wake Up interrupt flag is set */
-//        if(intSrcReg & ALL_INT_REG_WU_IA){
-//            AccEvent_Notify(ACC_WAKE_UP, 2);
-//        }
-//    }
+    if(W2ST_CHECK_HW_FEATURE(W2ST_HWF_WAKE_UP)) {
+        /* Check if the Wake Up interrupt flag is set */
+        if(intSrcReg & ALL_INT_REG_WU_IA){
+        	AccEventSteps_Notify(ACC_WAKE_UP, GetStepSWPedometer());
+
+            if (W2ST_CHECK_HW_FEATURE(W2ST_HWF_WAKE_UP)) {
+    			//Only for ST BLE Sensor Classic
+                AccEvent_Notifi(ACC_WAKE_UP);
+            }
+        }
+    }
 }
 
 static void processAccFifo(void)
@@ -520,7 +448,12 @@ static void processAccFifo(void)
             (W2ST_CHECK_HW_FEATURE(W2ST_HWF_MULTIPLE_EVENTS)))
         {
             if(lookForSteps()){
-                AccEvent_Notify(GetStepSWPedometer(), 3);//2);
+            	AccEventSteps_Notify(ACC_PEDOMETER, GetStepSWPedometer());
+
+                if (W2ST_CHECK_HW_FEATURE(W2ST_HWF_PEDOMETER)) {
+					//Only for ST BLE Sensor Classic
+                	AccEventSteps_Notifi(GetStepSWPedometer());
+				}
             }
         }
         
@@ -528,7 +461,12 @@ static void processAccFifo(void)
             (W2ST_CHECK_HW_FEATURE(W2ST_HWF_MULTIPLE_EVENTS)))
         {
             if(lookForTilt()){
-                AccEvent_Notify(ACC_TILT, 2);
+            	AccEventSteps_Notify(ACC_TILT, GetStepSWPedometer());
+
+                if (W2ST_CHECK_HW_FEATURE(W2ST_HWF_TILT)) {
+					//Only for ST BLE Sensor Classic
+                	AccEvent_Notifi(ACC_TILT);
+				}
             }
         }
     }
